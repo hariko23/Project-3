@@ -215,8 +215,32 @@ function CashierView() {
             <p>Loading menu items...</p>
           ) : (
             <>
+              {/* Category Filter */}
+              <div style={{ marginBottom: '10px', flexShrink: 0 }}>
+                <label style={{ fontSize: '13px', marginRight: '8px' }}>Filter by Category:</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  style={{
+                    padding: '6px',
+                    border: '1px solid #ddd',
+                    fontSize: '13px',
+                    backgroundColor: '#ffffff',
+                    width: '100%'
+                  }}
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div style={{ border: '1px solid #ddd', flex: 1, overflowY: 'auto', marginBottom: '8px', padding: '10px', minHeight: 0 }}>
-                {menuItems.map((item) => (
+                {menuItems
+                  .filter(item => selectedCategory === 'all' || item.drinkcategory === selectedCategory)
+                  .map((item) => (
                   <div
                     key={item.menuitemid}
                     style={{
