@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
 import { createOrder, getAllOrders, getOrderItems, markOrderItemComplete } from '../api/orderApi';
@@ -22,6 +22,12 @@ function CashierView() {
   const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
   const [orderItemsMap, setOrderItemsMap] = useState<Record<number, OrderItemDetail[]>>({});
   const [loadingItems, setLoadingItems] = useState<Set<number>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // Extract unique categories from menu items
+  const categories = useMemo(() => {
+    return [...new Set(menuItems.map(item => item.drinkcategory))];
+  }, [menuItems]);
 
   useEffect(() => {
     loadMenuItems();
@@ -201,40 +207,40 @@ function CashierView() {
       </div>
 
       {/* Three Column Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', flex: 1, minHeight: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '15px', flex: 1, minHeight: 0 }}>
         {/* Left Panel - Menu Items */}
-        <div style={{ border: '1px solid #ddd', padding: '10px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div style={{ border: '1px solid #ddd', padding: '15px', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <h2 style={{ fontSize: '16px', fontWeight: 'normal', marginTop: 0, marginBottom: '8px', flexShrink: 0 }}>Menu Items</h2>
           {loading ? (
             <p>Loading menu items...</p>
           ) : (
             <>
-              <div style={{ border: '1px solid #ddd', flex: 1, overflowY: 'auto', marginBottom: '8px', padding: '5px', minHeight: 0 }}>
+              <div style={{ border: '1px solid #ddd', flex: 1, overflowY: 'auto', marginBottom: '8px', padding: '10px', minHeight: 0 }}>
                 {menuItems.map((item) => (
                   <div
                     key={item.menuitemid}
                     style={{
-                      padding: '8px',
+                      padding: '12px',
                       borderBottom: '1px solid #eee',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px'
+                      gap: '15px'
                     }}
                   >
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, fontSize: '15px' }}>
                       {item.menuitemname} - ${item.price.toFixed(2)}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <label style={{ fontSize: '12px' }}>Qty:</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <label style={{ fontSize: '13px' }}>Qty:</label>
                       <select
                         value={itemQuantities[item.menuitemid] || 1}
                         onChange={(e) => updateItemQuantity(item.menuitemid, parseInt(e.target.value))}
                         onClick={(e) => e.stopPropagation()}
                         style={{
-                          padding: '4px',
+                          padding: '6px',
                           border: '1px solid #ddd',
-                          fontSize: '12px',
-                          width: '50px',
+                          fontSize: '13px',
+                          width: '60px',
                           backgroundColor: '#ffffff'
                         }}
                       >
@@ -242,7 +248,7 @@ function CashierView() {
                           <option key={num} value={num}>{num}</option>
                         ))}
                       </select>
-                      <Button onClick={() => addToOrder(item)} style={{ padding: '4px 8px', fontSize: '12px' }}>
+                      <Button onClick={() => addToOrder(item)} style={{ padding: '6px 12px', fontSize: '13px' }}>
                         Add
                       </Button>
                     </div>
