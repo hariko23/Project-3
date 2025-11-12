@@ -197,57 +197,45 @@ function ManagerView() {
   };
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: '15px' }}>
+    <div className="bg-white min-h-screen p-4">
       {/* Header */}
-      <div style={{ marginBottom: '15px', borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="mb-4 border-b border-gray-300 pb-2.5">
+        <div className="flex items-center justify-between">
           <Button to="/">← Back to Menu</Button>
-          <h1 style={{ fontSize: '24px', fontWeight: 'normal', margin: 0 }}>Manager Dashboard</h1>
-          <div style={{ width: '120px' }}></div>
+          <h1 className="text-2xl font-normal m-0">Manager Dashboard</h1>
+          <div className="w-[120px]"></div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #ddd' }}>
+      <div className="flex gap-2.5 mb-5 border-b border-gray-300">
         <button
           onClick={() => setActiveTab('inventory')}
-          style={{
-            padding: '10px 20px',
-            border: 'none',
-            borderBottom: activeTab === 'inventory' ? '2px solid #000' : '2px solid transparent',
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'inventory' ? 'bold' : 'normal'
-          }}
+          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
+            activeTab === 'inventory' 
+              ? 'border-b-2 border-black font-bold' 
+              : 'border-b-2 border-transparent font-normal'
+          }`}
         >
           Inventory
         </button>
         <button
           onClick={() => setActiveTab('analytics')}
-          style={{
-            padding: '10px 20px',
-            border: 'none',
-            borderBottom: activeTab === 'analytics' ? '2px solid #000' : '2px solid transparent',
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'analytics' ? 'bold' : 'normal'
-          }}
+          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
+            activeTab === 'analytics' 
+              ? 'border-b-2 border-black font-bold' 
+              : 'border-b-2 border-transparent font-normal'
+          }`}
         >
           Analytics
         </button>
         <button
           onClick={() => setActiveTab('orders')}
-          style={{
-            padding: '10px 20px',
-            border: 'none',
-            borderBottom: activeTab === 'orders' ? '2px solid #000' : '2px solid transparent',
-            backgroundColor: 'transparent',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: activeTab === 'orders' ? 'bold' : 'normal'
-          }}
+          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
+            activeTab === 'orders' 
+              ? 'border-b-2 border-black font-bold' 
+              : 'border-b-2 border-transparent font-normal'
+          }`}
         >
           Orders
         </button>
@@ -255,24 +243,24 @@ function ManagerView() {
 
       {/* Content */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
+        <div className="text-center p-10">Loading...</div>
       ) : (
         <>
           {/* Inventory Tab */}
           {activeTab === 'inventory' && (
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 'normal', marginBottom: '15px' }}>Inventory Management</h2>
+              <h2 className="text-lg font-normal mb-4">Inventory Management</h2>
               
               {/* Add New Item Form */}
-              <div style={{ border: '1px solid #ddd', padding: '15px', marginBottom: '20px', backgroundColor: '#f9f9f9' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'normal', marginTop: 0, marginBottom: '10px' }}>Add New Inventory Item</h3>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <div className="border border-gray-300 p-4 mb-5 bg-gray-50">
+                <h3 className="text-base font-normal mt-0 mb-2.5">Add New Inventory Item</h3>
+                <div className="flex gap-2.5 items-center">
                   <input
                     type="text"
                     placeholder="Item name"
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
-                    style={{ padding: '8px', border: '1px solid #ddd', fontSize: '14px', flex: 1 }}
+                    className="p-2 border border-gray-300 text-sm flex-1"
                   />
                   <input
                     type="number"
@@ -280,62 +268,62 @@ function ManagerView() {
                     value={newItemQuantity}
                     onChange={(e) => setNewItemQuantity(parseInt(e.target.value) || 0)}
                     min="0"
-                    style={{ padding: '8px', border: '1px solid #ddd', fontSize: '14px', width: '120px' }}
+                    className="p-2 border border-gray-300 text-sm w-[120px]"
                   />
                   <Button onClick={handleAddInventory}>Add Item</Button>
                 </div>
               </div>
 
               {/* Inventory List */}
-              <div style={{ border: '1px solid #ddd' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div className="border border-gray-300">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>ID</th>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Item Name</th>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Quantity</th>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Actions</th>
+                    <tr className="bg-gray-100 border-b-2 border-gray-300">
+                      <th className="p-2.5 text-left text-sm font-bold">ID</th>
+                      <th className="p-2.5 text-left text-sm font-bold">Item Name</th>
+                      <th className="p-2.5 text-left text-sm font-bold">Quantity</th>
+                      <th className="p-2.5 text-left text-sm font-bold">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {inventory.length === 0 ? (
                       <tr>
-                        <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
+                        <td colSpan={4} className="p-5 text-center text-gray-500">
                           No inventory items found
                         </td>
                       </tr>
                     ) : (
                       inventory.map((item) => (
-                        <tr key={item.ingredientid} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>{item.ingredientid}</td>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>{item.ingredientname}</td>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>
+                        <tr key={item.ingredientid} className="border-b border-gray-200">
+                          <td className="p-2.5 text-sm">{item.ingredientid}</td>
+                          <td className="p-2.5 text-sm">{item.ingredientname}</td>
+                          <td className="p-2.5 text-sm">
                             {editingItem === item.ingredientid ? (
                               <input
                                 type="number"
                                 value={editQuantity}
                                 onChange={(e) => setEditQuantity(parseInt(e.target.value) || 0)}
                                 min="0"
-                                style={{ padding: '4px', border: '1px solid #ddd', fontSize: '14px', width: '100px' }}
+                                className="p-1 border border-gray-300 text-sm w-[100px]"
                               />
                             ) : (
-                              <span style={{ color: item.ingredientcount < 10 ? '#d32f2f' : '#000' }}>
+                              <span className={item.ingredientcount < 10 ? 'text-red-600' : 'text-black'}>
                                 {item.ingredientcount}
                               </span>
                             )}
                           </td>
-                          <td style={{ padding: '10px' }}>
+                          <td className="p-2.5">
                             {editingItem === item.ingredientid ? (
-                              <div style={{ display: 'flex', gap: '5px' }}>
-                                <Button onClick={() => handleUpdateQuantity(item.ingredientid)} style={{ padding: '4px 8px', fontSize: '12px' }}>
+                              <div className="flex gap-1.5">
+                                <Button onClick={() => handleUpdateQuantity(item.ingredientid)} size="sm" className="text-xs">
                                   Save
                                 </Button>
-                                <Button onClick={cancelEdit} style={{ padding: '4px 8px', fontSize: '12px' }}>
+                                <Button onClick={cancelEdit} size="sm" className="text-xs">
                                   Cancel
                                 </Button>
                               </div>
                             ) : (
-                              <Button onClick={() => startEdit(item)} style={{ padding: '4px 8px', fontSize: '12px' }}>
+                              <Button onClick={() => startEdit(item)} size="sm" className="text-xs">
                                 Edit
                               </Button>
                             )}
@@ -352,33 +340,33 @@ function ManagerView() {
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: 'normal', marginBottom: '15px' }}>Analytics</h2>
+              <h2 className="text-lg font-normal mb-4">Analytics</h2>
               
               {/* Sales Data */}
-              <div style={{ border: '1px solid #ddd', padding: '15px', marginBottom: '20px', backgroundColor: '#f9f9f9' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'normal', marginTop: 0, marginBottom: '10px' }}>Total Sales</h3>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px' }}>
+              <div className="border border-gray-300 p-4 mb-5 bg-gray-50">
+                <h3 className="text-base font-normal mt-0 mb-2.5">Total Sales</h3>
+                <div className="flex gap-2.5 items-center mb-2.5">
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    style={{ padding: '8px', border: '1px solid #ddd', fontSize: '14px' }}
+                    className="p-2 border border-gray-300 text-sm"
                   />
                   <span>to</span>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    style={{ padding: '8px', border: '1px solid #ddd', fontSize: '14px' }}
+                    className="p-2 border border-gray-300 text-sm"
                   />
-                  <Button onClick={handleSalesDateChange} style={{ padding: '8px 16px' }}>
+                  <Button onClick={handleSalesDateChange}>
                     Update
                   </Button>
                 </div>
                 {salesData && (
-                  <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                  <div className="text-2xl font-bold">
                     ${salesData.total.toFixed(2)}
-                    <div style={{ fontSize: '12px', fontWeight: 'normal', color: '#666', marginTop: '5px' }}>
+                    <div className="text-xs font-normal text-gray-600 mt-1.5">
                       {salesData.period}
                     </div>
                   </div>
@@ -386,18 +374,18 @@ function ManagerView() {
               </div>
 
               {/* Product Usage */}
-              <div style={{ border: '1px solid #ddd', padding: '15px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 'normal', marginTop: 0, marginBottom: '15px' }}>Product Usage (Last 30 Days)</h3>
+              <div className="border border-gray-300 p-4">
+                <h3 className="text-base font-normal mt-0 mb-4">Product Usage (Last 30 Days)</h3>
                 {Object.keys(productUsage).length === 0 ? (
-                  <div style={{ color: '#888', padding: '20px', textAlign: 'center' }}>No product usage data available</div>
+                  <div className="text-gray-500 p-5 text-center">No product usage data available</div>
                 ) : (
                   <div>
                     {Object.entries(productUsage)
                       .sort(([, a], [, b]) => b - a)
                       .map(([name, count]) => (
-                        <div key={name} style={{ padding: '10px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ fontSize: '14px' }}>{name}</span>
-                          <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{count} sold</span>
+                        <div key={name} className="p-2.5 border-b border-gray-200 flex justify-between">
+                          <span className="text-sm">{name}</span>
+                          <span className="text-sm font-bold">{count} sold</span>
                         </div>
                       ))}
                   </div>
@@ -409,65 +397,63 @@ function ManagerView() {
           {/* Orders Tab */}
           {activeTab === 'orders' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: 'normal', margin: 0 }}>Order Overview</h2>
-                <Button onClick={loadOrders} style={{ padding: '8px 16px' }}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-normal m-0">Order Overview</h2>
+                <Button onClick={loadOrders}>
                   Refresh
                 </Button>
               </div>
 
               {/* Summary Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '20px' }}>
-                <div style={{ border: '1px solid #ddd', padding: '15px', backgroundColor: '#f9f9f9' }}>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Total Revenue</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold' }}>${getTotalRevenue().toFixed(2)}</div>
+              <div className="grid grid-cols-3 gap-4 mb-5">
+                <div className="border border-gray-300 p-4 bg-gray-50">
+                  <div className="text-xs text-gray-600 mb-1.5">Total Revenue</div>
+                  <div className="text-2xl font-bold">${getTotalRevenue().toFixed(2)}</div>
                 </div>
-                <div style={{ border: '1px solid #ddd', padding: '15px', backgroundColor: '#f9f9f9' }}>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Completed Orders</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{getCompletedOrders()}</div>
+                <div className="border border-gray-300 p-4 bg-gray-50">
+                  <div className="text-xs text-gray-600 mb-1.5">Completed Orders</div>
+                  <div className="text-2xl font-bold">{getCompletedOrders()}</div>
                 </div>
-                <div style={{ border: '1px solid #ddd', padding: '15px', backgroundColor: '#f9f9f9' }}>
-                  <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>Pending Orders</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold' }}>{getPendingOrders()}</div>
+                <div className="border border-gray-300 p-4 bg-gray-50">
+                  <div className="text-xs text-gray-600 mb-1.5">Pending Orders</div>
+                  <div className="text-2xl font-bold">{getPendingOrders()}</div>
                 </div>
               </div>
 
               {/* Orders List */}
-              <div style={{ border: '1px solid #ddd' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <div className="border border-gray-300">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Order ID</th>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Date</th>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Total</th>
-                      <th style={{ padding: '10px', textAlign: 'left', fontSize: '14px', fontWeight: 'bold' }}>Status</th>
+                    <tr className="bg-gray-100 border-b-2 border-gray-300">
+                      <th className="p-2.5 text-left text-sm font-bold">Order ID</th>
+                      <th className="p-2.5 text-left text-sm font-bold">Date</th>
+                      <th className="p-2.5 text-left text-sm font-bold">Total</th>
+                      <th className="p-2.5 text-left text-sm font-bold">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orders.length === 0 ? (
                       <tr>
-                        <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#888' }}>
+                        <td colSpan={4} className="p-5 text-center text-gray-500">
                           No orders found
                         </td>
                       </tr>
                     ) : (
                       orders.map((order) => (
-                        <tr key={order.orderid} style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>#{order.orderid}</td>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>
+                        <tr key={order.orderid} className="border-b border-gray-200">
+                          <td className="p-2.5 text-sm">#{order.orderid}</td>
+                          <td className="p-2.5 text-sm">
                             {new Date(order.timeoforder).toLocaleString()}
                           </td>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>
+                          <td className="p-2.5 text-sm">
                             ${Number(order.totalcost).toFixed(2)}
                           </td>
-                          <td style={{ padding: '10px', fontSize: '14px' }}>
-                            <span style={{
-                              padding: '4px 8px',
-                              borderRadius: '4px',
-                              backgroundColor: order.is_complete ? '#e8f5e9' : '#fff3e0',
-                              color: order.is_complete ? '#2e7d32' : '#e65100',
-                              fontSize: '12px'
-                            }}>
+                          <td className="p-2.5 text-sm">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              order.is_complete 
+                                ? 'bg-green-50 text-green-800' 
+                                : 'bg-orange-50 text-orange-800'
+                            }`}>
                               {order.is_complete ? 'Complete' : 'Pending'}
                             </span>
                           </td>

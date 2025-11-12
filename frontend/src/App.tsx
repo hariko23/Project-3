@@ -34,8 +34,8 @@ function Navigation() {
   };
 
   return (
-    <nav style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>
-      <Link to="/" style={{ marginRight: '10px', color: '#000', textDecoration: 'none' }}>
+    <nav className="p-2.5 border-b border-gray-300">
+      <Link to="/" className="mr-2.5 text-black no-underline">
         {getPageName()}
       </Link>
     </nav>
@@ -56,7 +56,7 @@ function Navigation() {
 function App() {
   return (
     <Router>
-      <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+      <div className="bg-white min-h-screen">
         <Navigation />
         <Routes>
           <Route path="/" element={<LandingPage />} />

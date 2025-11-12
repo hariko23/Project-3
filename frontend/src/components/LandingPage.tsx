@@ -11,20 +11,20 @@ import { Link } from 'react-router-dom';
  */
 function LandingPage() {
   return (
-    <div style={{ padding: '20px', textAlign: 'center', backgroundColor: '#ffffff' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 'normal', marginBottom: '40px' }}>Boba POS System</h1>
+    <div className="p-5 text-center bg-white">
+      <h1 className="text-2xl font-normal mb-10">Boba POS System</h1>
       {/* Navigation links to different application views */}
-      <div style={{ marginTop: '40px' }}>
-        <Link to="/manager" style={{ display: 'block', margin: '10px', padding: '10px', border: '1px solid #ddd', textDecoration: 'none', color: '#000', backgroundColor: '#ffffff' }}>
+      <div className="mt-10">
+        <Link to="/manager" className="block my-2.5 p-2.5 border border-gray-300 no-underline text-black bg-white">
           Manager
         </Link>
-        <Link to="/cashier" style={{ display: 'block', margin: '10px', padding: '10px', border: '1px solid #ddd', textDecoration: 'none', color: '#000', backgroundColor: '#ffffff' }}>
+        <Link to="/cashier" className="block my-2.5 p-2.5 border border-gray-300 no-underline text-black bg-white">
           Cashier
         </Link>
-        <Link to="/customer" style={{ display: 'block', margin: '10px', padding: '10px', border: '1px solid #ddd', textDecoration: 'none', color: '#000', backgroundColor: '#ffffff' }}>
+        <Link to="/customer" className="block my-2.5 p-2.5 border border-gray-300 no-underline text-black bg-white">
           Customer
         </Link>
-        <Link to="/menu-board" style={{ display: 'block', margin: '10px', padding: '10px', border: '1px solid #ddd', textDecoration: 'none', color: '#000', backgroundColor: '#ffffff' }}>
+        <Link to="/menu-board" className="block my-2.5 p-2.5 border border-gray-300 no-underline text-black bg-white">
           Menu Board
         </Link>
       </div>
