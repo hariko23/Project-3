@@ -25,7 +25,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: 'default',
+      variant: 'outline',
       size: 'default',
     },
   }
@@ -36,6 +36,7 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
   to?: string; // If provided, renders as a Link instead of button
   onClick?: () => void; // Click handler (used when to is not provided)
   className?: string; // Additional CSS classes
+  style?: React.CSSProperties; // Inline styles (for backward compatibility)
 }
 
 /**
@@ -50,19 +51,19 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
  * @param size - Button size (default, sm, lg, icon)
  * @param className - Additional CSS classes to merge
  */
-function Button({ children, to, onClick, variant, size, className }: ButtonProps) {
+function Button({ children, to, onClick, variant, size, className, style }: ButtonProps) {
   const buttonClasses = cn(buttonVariants({ variant, size }), className);
 
   if (to) {
     return (
-      <Link to={to} className={buttonClasses}>
+      <Link to={to} className={buttonClasses} style={style}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button onClick={onClick} className={buttonClasses}>
+    <button onClick={onClick} className={buttonClasses} style={style}>
       {children}
     </button>
   );
