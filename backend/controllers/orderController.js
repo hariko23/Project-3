@@ -1,5 +1,10 @@
 const pool = require('../config/database');
 
+/**
+ * Get all orders
+ * @route GET /api/orders
+ * @returns {Array} Array of all orders sorted by time of order (newest first)
+ */
 const getAllOrders = async (req, res) => {
     try {
         const query = 'SELECT orderid, timeoforder, customerid, employeeid, totalcost, orderweek, is_complete FROM orders ORDER BY timeoforder DESC';
@@ -11,19 +16,38 @@ const getAllOrders = async (req, res) => {
     }
 };
 
+/**
+ * Create a new order
+ * This function handles the complete order creation process:
+ * 1. Validates inventory availability
+ * 2. Creates the order record
+ * 3. Creates order item records
+ * 4. Updates inventory quantities
+ * All operations are wrapped in a database transaction
+ * @route POST /api/orders
+ * @param {string} timeoforder - Order timestamp (ISO string)
+ * @param {number|null} customerid - Customer ID (optional)
+ * @param {number} employeeid - Employee ID who created the order
+ * @param {number} totalcost - Total cost of the order
+ * @param {number} orderweek - Week number of the order
+ * @param {Array} orderItems - Array of order items with menuitemid and quantity
+ * @returns {Object} The newly created order
+ */
 const createOrder = async (req, res) => {
     const client = await pool.connect();
     
     try {
+        // Start database transaction
         await client.query('BEGIN');
 
         const { timeoforder, customerid, employeeid, totalcost, orderweek, orderItems } = req.body;
 
+        // Validate that order has items
         if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
             return res.status(400).json({ success: false, error: 'Order must contain at least one item' });
         }
 
-        // Validate inventory
+        // Validate inventory availability for all items
         for (const orderItem of orderItems) {
             const checkQuery = `
                 SELECT i.ingredientID, i.ingredientCount, mi.ingredientQty 
@@ -96,12 +120,18 @@ const createOrder = async (req, res) => {
     }
 };
 
+/**
+ * Get all items for a specific order
+ * @route GET /api/orders/:orderId/items
+ * @param {number} orderId - Order ID (from URL params)
+ * @returns {Array} Array of order items with menu item details
+ */
 const getOrderItems = async (req, res) => {
     try {
         const { orderId } = req.params;
         console.log('Fetching order items for orderId:', orderId);
         
-        // First check if order exists
+        // Verify order exists before fetching items
         const orderCheck = await pool.query('SELECT orderid FROM orders WHERE orderid = $1', [orderId]);
         if (orderCheck.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Order not found' });
@@ -149,9 +179,16 @@ const getOrderItems = async (req, res) => {
     }
 };
 
+/**
+ * Get a single order item by ID
+ * @route GET /api/orders/items/:orderItemId
+ * @param {number} orderItemId - Order item ID (from URL params)
+ * @returns {Object} Order item with menu item details
+ */
 const getOrderItemById = async (req, res) => {
     try {
         const { orderItemId } = req.params;
+        // Get order item with menu item details
         const query = `
             SELECT oi.*, mi.menuitemname, mi.price
             FROM orderitems oi
@@ -169,6 +206,14 @@ const getOrderItemById = async (req, res) => {
     }
 };
 
+/**
+ * Mark an order item as complete or incomplete
+ * Also checks if all items in the order are complete and updates the order status accordingly
+ * @route PATCH /api/orders/items/:orderItemId/complete
+ * @param {number} orderItemId - Order item ID (from URL params)
+ * @param {boolean} isComplete - Completion status (from request body)
+ * @returns {Object} Updated order item
+ */
 const markOrderItemComplete = async (req, res) => {
     try {
         const { orderItemId } = req.params;

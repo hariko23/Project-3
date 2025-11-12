@@ -1,5 +1,11 @@
 const pool = require('../config/database');
 
+/**
+ * Get product usage data for the last 30 days
+ * Returns a count of how many times each menu item was sold
+ * @route GET /api/analytics/product-usage
+ * @returns {Object} Object with menu item names as keys and total sold as values
+ */
 const getProductUsageData = async (req, res) => {
     try {
         const query = `
@@ -25,14 +31,23 @@ const getProductUsageData = async (req, res) => {
     }
 };
 
+/**
+ * Get total sales for a date range
+ * @route GET /api/analytics/sales
+ * @param {string} startDate - Start date (YYYY-MM-DD format)
+ * @param {string} endDate - End date (YYYY-MM-DD format)
+ * @returns {Object} Object with totalSales property
+ */
 const getTotalSales = async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
         
+        // Validate required query parameters
         if (!startDate || !endDate) {
             return res.status(400).json({ success: false, error: 'startDate and endDate query parameters are required' });
         }
 
+        // Calculate total sales for the date range
         const query = 'SELECT COALESCE(SUM(totalcost), 0) as total FROM orders WHERE DATE(timeoforder) BETWEEN $1 AND $2';
         const result = await pool.query(query, [startDate, endDate]);
         
