@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
+import ManagerView from './components/ManagerView';
+import CashierView from './components/CashierView';
+import CustomerView from './components/CustomerView';
+import MenuBoardView from './components/MenuBoardView';
 
-function App() {
-  const [count, setCount] = useState(0)
+function Navigation() {
+  const location = useLocation();
+  
+  const getPageName = () => {
+    switch (location.pathname) {
+      case '/':
+        return 'Home';
+      case '/manager':
+        return 'Manager';
+      case '/cashier':
+        return 'Cashier';
+      case '/customer':
+        return 'Customer';
+      case '/menu-board':
+        return 'Menu Board';
+      default:
+        return 'Home';
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <nav style={{ padding: '10px', borderBottom: '1px solid #ddd' }}>
+      <Link to="/" style={{ marginRight: '10px', color: '#000', textDecoration: 'none' }}>
+        {getPageName()}
+      </Link>
+    </nav>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Router>
+      <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/manager" element={<ManagerView />} />
+          <Route path="/cashier" element={<CashierView />} />
+          <Route path="/customer" element={<CustomerView />} />
+          <Route path="/menu-board" element={<MenuBoardView />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
