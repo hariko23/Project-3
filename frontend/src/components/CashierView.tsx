@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
-import { createOrder, getAllOrders } from '../api/orderApi';
-import type { OrderResponse } from '../api/orderApi';
+import { createOrder, getAllOrders, getOrderItems, markOrderItemComplete } from '../api/orderApi';
+import type { OrderResponse, OrderItemDetail } from '../api/orderApi';
 import Button from './ui/Button';
 
 interface OrderItem {
@@ -19,6 +19,9 @@ function CashierView() {
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [incompleteOrders, setIncompleteOrders] = useState<OrderResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
+  const [orderItemsMap, setOrderItemsMap] = useState<Record<number, OrderItemDetail[]>>({});
+  const [loadingItems, setLoadingItems] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadMenuItems();
@@ -57,6 +60,57 @@ function CashierView() {
       setIncompleteOrders(incomplete);
     } catch (err) {
       console.error('Error loading incomplete orders:', err);
+    }
+  };
+
+  const toggleOrderExpansion = async (orderId: number) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+      // Load order items if not already loaded
+      if (!orderItemsMap[orderId]) {
+        setLoadingItems(prev => new Set(prev).add(orderId));
+        try {
+          const items = await getOrderItems(orderId);
+          console.log('Loaded order items:', items);
+          setOrderItemsMap(prev => ({ ...prev, [orderId]: items }));
+        } catch (err) {
+          console.error('Error loading order items:', err);
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          alert(`Failed to load order items: ${errorMessage}`);
+          // Set empty array so it doesn't keep trying
+          setOrderItemsMap(prev => ({ ...prev, [orderId]: [] }));
+        } finally {
+          setLoadingItems(prev => {
+            const next = new Set(prev);
+            next.delete(orderId);
+            return next;
+          });
+        }
+      }
+    }
+    setExpandedOrders(newExpanded);
+  };
+
+  const handleMarkComplete = async (orderItem: OrderItemDetail) => {
+    try {
+      await markOrderItemComplete(orderItem.orderitemid, !orderItem.is_complete);
+      // Update the order item in the map
+      setOrderItemsMap(prev => ({
+        ...prev,
+        [orderItem.orderid]: prev[orderItem.orderid].map(item =>
+          item.orderitemid === orderItem.orderitemid
+            ? { ...item, is_complete: !item.is_complete }
+            : item
+        )
+      }));
+      // Refresh incomplete orders list in case the order is now complete
+      await loadIncompleteOrders();
+    } catch (err) {
+      console.error('Error marking order item complete:', err);
+      alert('Failed to update order item status');
     }
   };
 
@@ -253,15 +307,89 @@ function CashierView() {
             {incompleteOrders.length === 0 ? (
               <div style={{ color: '#888', fontSize: '14px', padding: '10px' }}>No uncompleted orders</div>
             ) : (
-              incompleteOrders.map((order) => (
-                <div key={order.orderid} style={{ padding: '8px', borderBottom: '1px solid #eee', fontSize: '12px' }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Order #{order.orderid}</div>
-                  <div>Total: ${Number(order.totalcost).toFixed(2)}</div>
-                  <div style={{ color: '#666', fontSize: '11px', marginTop: '2px' }}>
-                    {new Date(order.timeoforder).toLocaleString()}
+              incompleteOrders.map((order) => {
+                const isExpanded = expandedOrders.has(order.orderid);
+                const items = orderItemsMap[order.orderid] || [];
+                const isLoading = loadingItems.has(order.orderid);
+                const completedCount = items.filter(item => item.is_complete).length;
+                const totalCount = items.length;
+
+                return (
+                  <div key={order.orderid} style={{ borderBottom: '1px solid #eee', fontSize: '12px' }}>
+                    <div
+                      style={{
+                        padding: '8px',
+                        cursor: 'pointer',
+                        backgroundColor: isExpanded ? '#f5f5f5' : 'transparent',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                      onClick={() => toggleOrderExpansion(order.orderid)}
+                    >
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Order #{order.orderid}</div>
+                        <div>Total: ${Number(order.totalcost).toFixed(2)}</div>
+                        {totalCount > 0 && (
+                          <div style={{ color: '#666', fontSize: '11px', marginTop: '2px' }}>
+                            {completedCount}/{totalCount} drinks completed
+                          </div>
+                        )}
+                        <div style={{ color: '#666', fontSize: '11px', marginTop: '2px' }}>
+                          {new Date(order.timeoforder).toLocaleString()}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '16px', color: '#666' }}>
+                        {isExpanded ? '▼' : '▶'}
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div style={{ padding: '8px', backgroundColor: '#fafafa', borderTop: '1px solid #eee' }}>
+                        {isLoading ? (
+                          <div style={{ color: '#888', fontSize: '11px', padding: '4px' }}>Loading drinks...</div>
+                        ) : items.length === 0 ? (
+                          <div style={{ color: '#888', fontSize: '11px', padding: '4px' }}>No items found</div>
+                        ) : (
+                          items.map((item) => (
+                            <div
+                              key={item.orderitemid}
+                              style={{
+                                padding: '6px',
+                                marginBottom: '4px',
+                                backgroundColor: item.is_complete ? '#e8f5e9' : '#fff',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: item.is_complete ? 'normal' : 'bold' }}>
+                                  {item.menuitemname} x{item.quantity}
+                                </div>
+                                <div style={{ fontSize: '10px', color: '#666' }}>
+                                  ${(item.price * item.quantity).toFixed(2)}
+                                </div>
+                              </div>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '11px' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={item.is_complete}
+                                  onChange={() => handleMarkComplete(item)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{ cursor: 'pointer' }}
+                                />
+                                <span>{item.is_complete ? 'Done' : 'Mark Complete'}</span>
+                              </label>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
