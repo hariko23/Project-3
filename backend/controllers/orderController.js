@@ -72,7 +72,9 @@ const createOrder = async (req, res) => {
             }
         }
 
-        // Get next order ID
+        // Get next order ID using advisory lock to prevent race conditions
+        // Lock ID 1 for order ID generation
+        await client.query('SELECT pg_advisory_xact_lock(1)');
         const orderIdResult = await client.query('SELECT COALESCE(MAX(orderid), 0) + 1 as next_id FROM orders');
         const orderId = orderIdResult.rows[0].next_id;
 
@@ -89,6 +91,8 @@ const createOrder = async (req, res) => {
         ]);
 
         // Insert order items
+        // Lock ID 2 for order item ID generation (different from order ID lock)
+        await client.query('SELECT pg_advisory_xact_lock(2)');
         const itemQuery = 'INSERT INTO orderitems (orderitemid, orderid, menuitemid, quantity, is_complete) VALUES ($1, $2, $3, $4, $5)';
         for (const item of orderItems) {
             const itemIdResult = await client.query('SELECT COALESCE(MAX(orderitemid), 0) + 1 as next_id FROM orderitems');
