@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
-import { createOrder, getAllOrders } from '../api/orderAPI';  
-import type { OrderResponse } from '../api/orderAPI';
+import { createOrder, getAllOrders } from '../api/orderApi';
+import type { OrderResponse } from '../api/orderApi';
 import Button from './ui/Button';
 
 interface OrderItem {
