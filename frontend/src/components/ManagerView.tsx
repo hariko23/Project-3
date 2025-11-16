@@ -22,6 +22,8 @@ function ManagerView() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [productUsage, setProductUsage] = useState<Record<string, number>>({});
+  const [productUsageFilter, setProductUsageFilter] = useState<string>('all');
+  const [productUsageFilterType, setProductUsageFilterType] = useState<'category' | 'drink'>('category');
   const [salesData, setSalesData] = useState<{ total: number; period: string } | null>(null);
   const [orders, setOrders] = useState<OrderResponse[]>([]);
   
@@ -45,6 +47,32 @@ function ManagerView() {
   const categories = useMemo(() => {
     return [...new Set(menuItems.map(item => item.drinkcategory))];
   }, [menuItems]);
+
+  // Filter product usage based on selected category or drink
+  const filteredProductUsage = useMemo(() => {
+    if (productUsageFilter === 'all') {
+      return productUsage;
+    }
+
+    const filtered: Record<string, number> = {};
+    
+    if (productUsageFilterType === 'category') {
+      // Filter by category - show drinks in that category
+      Object.entries(productUsage).forEach(([name, count]) => {
+        const menuItem = menuItems.find(item => item.menuitemname === name);
+        if (menuItem && menuItem.drinkcategory === productUsageFilter) {
+          filtered[name] = count;
+        }
+      });
+    } else {
+      // Filter by specific drink name
+      if (productUsage[productUsageFilter] !== undefined) {
+        filtered[productUsageFilter] = productUsage[productUsageFilter];
+      }
+    }
+    
+    return filtered;
+  }, [productUsage, productUsageFilter, productUsageFilterType, menuItems]);
 
   useEffect(() => {
     loadData();
@@ -89,12 +117,14 @@ function ManagerView() {
    * Fetches both datasets in parallel for better performance
    */
   const loadAnalytics = async () => {
-    const [usage, sales] = await Promise.all([
+    const [usage, sales, menu] = await Promise.all([
       getProductUsageData(),
-      getTotalSales(startDate, endDate)
+      getTotalSales(startDate, endDate),
+      getAllMenuItems()
     ]);
     setProductUsage(usage);
     setSalesData({ total: sales.totalSales, period: `${startDate} to ${endDate}` });
+    setMenuItems(menu);
   };
 
   /**
@@ -440,11 +470,70 @@ function ManagerView() {
               {/* Product Usage */}
               <div className="border border-gray-300 p-4">
                 <h3 className="text-base font-normal mt-0 mb-4">Product Usage (Last 30 Days)</h3>
+                
+                {/* Filter Controls */}
+                <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                  <div className="flex gap-4 items-center flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium">Filter by:</label>
+                      <select
+                        value={productUsageFilterType}
+                        onChange={(e) => {
+                          setProductUsageFilterType(e.target.value as 'category' | 'drink');
+                          setProductUsageFilter('all');
+                        }}
+                        className="p-2 border border-gray-300 text-sm bg-white rounded"
+                      >
+                        <option value="category">Category</option>
+                        <option value="drink">Drink Name</option>
+                      </select>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium">
+                        {productUsageFilterType === 'category' ? 'Select Category:' : 'Enter Drink Name:'}
+                      </label>
+                      {productUsageFilterType === 'category' ? (
+                        <select
+                          value={productUsageFilter}
+                          onChange={(e) => setProductUsageFilter(e.target.value)}
+                          className="p-2 border border-gray-300 text-sm bg-white rounded min-w-[200px]"
+                        >
+                          <option value="all">All</option>
+                          {categories.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={productUsageFilter === 'all' ? '' : productUsageFilter}
+                          onChange={(e) => setProductUsageFilter(e.target.value || 'all')}
+                          placeholder="Type drink name..."
+                          className="p-2 border border-gray-300 text-sm rounded min-w-[200px]"
+                          list="drink-suggestions"
+                        />
+                      )}
+                      {productUsageFilterType === 'drink' && (
+                        <datalist id="drink-suggestions">
+                          {Object.keys(productUsage).sort().map((drinkName) => (
+                            <option key={drinkName} value={drinkName} />
+                          ))}
+                        </datalist>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {Object.keys(productUsage).length === 0 ? (
                   <div className="text-gray-500 p-5 text-center">No product usage data available</div>
+                ) : Object.keys(filteredProductUsage).length === 0 ? (
+                  <div className="text-gray-500 p-5 text-center">No products found for selected filter</div>
                 ) : (
                   <div>
-                    {Object.entries(productUsage)
+                    {Object.entries(filteredProductUsage)
                       .sort(([, a], [, b]) => b - a)
                       .map(([name, count]) => (
                         <div key={name} className="p-2.5 border-b border-gray-200 flex justify-between">
