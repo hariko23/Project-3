@@ -253,10 +253,43 @@ const markOrderItemComplete = async (req, res) => {
     }
 };
 
+/**
+ * Update order completion status
+ * @route PATCH /api/orders/:id/status
+ * @param {number} id - Order ID (from URL params)
+ * @param {boolean} is_complete - New completion status (from request body)
+ * @returns {Object} Updated order
+ */
+const updateOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_complete } = req.body;
+
+        // Validate required parameter
+        if (is_complete === undefined) {
+            return res.status(400).json({ success: false, error: 'is_complete is required' });
+        }
+
+        // Update order status
+        const query = 'UPDATE orders SET is_complete = $1 WHERE orderid = $2 RETURNING *';
+        const result = await pool.query(query, [is_complete, id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Order not found' });
+        }
+
+        res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getAllOrders,
     createOrder,
     getOrderItems,
     getOrderItemById,
-    markOrderItemComplete
+    markOrderItemComplete,
+    updateOrderStatus
 };

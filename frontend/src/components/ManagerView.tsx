@@ -7,6 +7,7 @@ import { getProductUsageData, getTotalSales } from '../api/analyticsApi';
 import { getAllOrders } from '../api/orderApi';
 import type { OrderResponse } from '../api/orderApi';
 import Button from './ui/Button';
+import API_BASE_URL from '../api/config';
 
 /**
  * Manager View component
@@ -26,6 +27,17 @@ function ManagerView() {
   const [productUsageFilterType, setProductUsageFilterType] = useState<'category' | 'drink'>('category');
   const [salesData, setSalesData] = useState<{ total: number; period: string } | null>(null);
   const [orders, setOrders] = useState<OrderResponse[]>([]);
+  
+  // Order filter state
+  const [showOrderFilterModal, setShowOrderFilterModal] = useState(false);
+  const [orderFilters, setOrderFilters] = useState({
+    dateFrom: '',
+    dateTo: '',
+    minTotal: '',
+    maxTotal: '',
+    status: 'all' as 'all' | 'complete' | 'pending',
+    orderId: ''
+  });
   
   // Inventory form state
   const [newItemName, setNewItemName] = useState('');
@@ -47,6 +59,41 @@ function ManagerView() {
   const categories = useMemo(() => {
     return [...new Set(menuItems.map(item => item.drinkcategory))];
   }, [menuItems]);
+
+  // Filter orders based on applied filters (for statistics - includes ALL matching orders)
+  const allFilteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      // Filter by date range
+      if (orderFilters.dateFrom) {
+        const orderDate = new Date(order.timeoforder).toISOString().split('T')[0];
+        if (orderDate < orderFilters.dateFrom) return false;
+      }
+      if (orderFilters.dateTo) {
+        const orderDate = new Date(order.timeoforder).toISOString().split('T')[0];
+        if (orderDate > orderFilters.dateTo) return false;
+      }
+      
+      // Filter by total amount
+      if (orderFilters.minTotal && Number(order.totalcost) < Number(orderFilters.minTotal)) return false;
+      if (orderFilters.maxTotal && Number(order.totalcost) > Number(orderFilters.maxTotal)) return false;
+      
+      // Filter by status
+      if (orderFilters.status === 'complete' && !order.is_complete) return false;
+      if (orderFilters.status === 'pending' && order.is_complete) return false;
+      
+      // Filter by order ID
+      if (orderFilters.orderId && !order.orderid.toString().includes(orderFilters.orderId)) return false;
+      
+      return true;
+    });
+  }, [orders, orderFilters]);
+
+  // Filtered orders for display (limited to 50 most recent)
+  const filteredOrders = useMemo(() => {
+    return [...allFilteredOrders]
+      .sort((a, b) => new Date(b.timeoforder).getTime() - new Date(a.timeoforder).getTime())
+      .slice(0, 50);
+  }, [allFilteredOrders]);
 
   // Filter product usage based on selected category or drink
   const filteredProductUsage = useMemo(() => {
@@ -216,27 +263,85 @@ function ManagerView() {
   };
 
   /**
-   * Calculate total revenue from all orders
-   * @returns Sum of all order totals
+   * Calculate total revenue from filtered orders
+   * @returns Sum of all filtered order totals
    */
   const getTotalRevenue = () => {
-    return orders.reduce((sum, order) => sum + Number(order.totalcost), 0);
+    return allFilteredOrders.reduce((sum, order) => sum + Number(order.totalcost), 0);
   };
 
   /**
-   * Count completed orders
-   * @returns Number of orders marked as complete
+   * Count completed orders from filtered orders
+   * @returns Number of filtered orders marked as complete
    */
   const getCompletedOrders = () => {
-    return orders.filter(order => order.is_complete).length;
+    return allFilteredOrders.filter(order => order.is_complete).length;
   };
 
   /**
-   * Count pending orders
-   * @returns Number of orders not yet complete
+   * Count pending orders from filtered orders
+   * @returns Number of filtered orders not yet complete
    */
   const getPendingOrders = () => {
-    return orders.filter(order => !order.is_complete).length;
+    return allFilteredOrders.filter(order => !order.is_complete).length;
+  };
+
+  /**
+   * Reset all order filters to default values
+   */
+  const resetOrderFilters = () => {
+    setOrderFilters({
+      dateFrom: '',
+      dateTo: '',
+      minTotal: '',
+      maxTotal: '',
+      status: 'all',
+      orderId: ''
+    });
+  };
+
+  /**
+   * Apply filters and close the modal
+   */
+  const applyOrderFilters = () => {
+    setShowOrderFilterModal(false);
+  };
+
+  /**
+   * Toggle order completion status
+   * @param orderId - Order ID to update
+   * @param currentStatus - Current completion status
+   */
+  const toggleOrderStatus = async (orderId: number, currentStatus: boolean) => {
+    try {
+      // Make API call to update order status
+      const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ is_complete: !currentStatus }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update order status');
+      }
+
+      // Update local state
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.orderid === orderId 
+            ? { ...order, is_complete: !currentStatus }
+            : order
+        )
+      );
+    } catch (err) {
+      console.error('Error updating order status:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      alert(`Failed to update order status: ${errorMessage}`);
+    }
   };
 
   return (
@@ -552,19 +657,120 @@ function ManagerView() {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-normal m-0">Order Overview</h2>
-                <Button onClick={loadOrders}>
-                  Refresh
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowOrderFilterModal(true)}>
+                    Filter Orders
+                  </Button>
+                  <Button onClick={loadOrders}>
+                    Refresh
+                  </Button>
+                </div>
               </div>
+
+              {/* Filter Modal */}
+              {showOrderFilterModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowOrderFilterModal(false)}>
+                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                    <h3 className="text-lg font-bold mb-4">Filter Orders</h3>
+                    
+                    {/* Date Range Filter */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Date Range:</label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="date"
+                          value={orderFilters.dateFrom}
+                          onChange={(e) => setOrderFilters({...orderFilters, dateFrom: e.target.value})}
+                          className="p-2 border border-gray-300 text-sm rounded flex-1"
+                          placeholder="From"
+                        />
+                        <span className="text-sm">to</span>
+                        <input
+                          type="date"
+                          value={orderFilters.dateTo}
+                          onChange={(e) => setOrderFilters({...orderFilters, dateTo: e.target.value})}
+                          className="p-2 border border-gray-300 text-sm rounded flex-1"
+                          placeholder="To"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Total Amount Filter */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Total Amount:</label>
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="number"
+                          value={orderFilters.minTotal}
+                          onChange={(e) => setOrderFilters({...orderFilters, minTotal: e.target.value})}
+                          className="p-2 border border-gray-300 text-sm rounded flex-1"
+                          placeholder="Min"
+                          min="0"
+                          step="0.01"
+                        />
+                        <span className="text-sm">to</span>
+                        <input
+                          type="number"
+                          value={orderFilters.maxTotal}
+                          onChange={(e) => setOrderFilters({...orderFilters, maxTotal: e.target.value})}
+                          className="p-2 border border-gray-300 text-sm rounded flex-1"
+                          placeholder="Max"
+                          min="0"
+                          step="0.01"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-2">Status:</label>
+                      <select
+                        value={orderFilters.status}
+                        onChange={(e) => setOrderFilters({...orderFilters, status: e.target.value as 'all' | 'complete' | 'pending'})}
+                        className="w-full p-2 border border-gray-300 text-sm rounded bg-white"
+                      >
+                        <option value="all">All</option>
+                        <option value="complete">Complete</option>
+                        <option value="pending">Pending</option>
+                      </select>
+                    </div>
+
+                    {/* Order ID Filter */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium mb-2">Order ID:</label>
+                      <input
+                        type="text"
+                        value={orderFilters.orderId}
+                        onChange={(e) => setOrderFilters({...orderFilters, orderId: e.target.value})}
+                        className="w-full p-2 border border-gray-300 text-sm rounded"
+                        placeholder="Enter order ID"
+                      />
+                    </div>
+
+                    {/* Modal Actions */}
+                    <div className="flex gap-2 justify-end">
+                      <Button onClick={resetOrderFilters} className="bg-gray-500">
+                        Reset
+                      </Button>
+                      <Button onClick={() => setShowOrderFilterModal(false)} className="bg-gray-500">
+                        Cancel
+                      </Button>
+                      <Button onClick={applyOrderFilters}>
+                        Apply Filters
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Summary Cards */}
               <div className="grid grid-cols-3 gap-4 mb-5">
                 <div className="border border-gray-300 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-600 mb-1.5">Total Revenue</div>
+                  <div className="text-xs text-gray-600 mb-1.5">Total Revenue for applied filters</div>
                   <div className="text-2xl font-bold">${getTotalRevenue().toFixed(2)}</div>
                 </div>
                 <div className="border border-gray-300 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-600 mb-1.5">Completed Orders</div>
+                  <div className="text-xs text-gray-600 mb-1.5">Completed Orders for applied filters</div>
                   <div className="text-2xl font-bold">{getCompletedOrders()}</div>
                 </div>
                 <div className="border border-gray-300 p-4 bg-gray-50">
@@ -575,6 +781,10 @@ function ManagerView() {
 
               {/* Orders List */}
               <div className="border border-gray-300">
+                <div className="bg-gray-100 p-2 border-b border-gray-300 text-sm text-gray-600">
+                  Showing {filteredOrders.length} of {allFilteredOrders.length} matching orders
+                  {allFilteredOrders.length !== orders.length && ` (${orders.length} total orders)`}
+                </div>
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-gray-300">
@@ -585,14 +795,14 @@ function ManagerView() {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.length === 0 ? (
+                    {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={4} className="p-5 text-center text-gray-500">
                           No orders found
                         </td>
                       </tr>
                     ) : (
-                      orders.map((order) => (
+                      filteredOrders.map((order) => (
                         <tr key={order.orderid} className="border-b border-gray-200">
                           <td className="p-2.5 text-sm">#{order.orderid}</td>
                           <td className="p-2.5 text-sm">
@@ -602,13 +812,22 @@ function ManagerView() {
                             ${Number(order.totalcost).toFixed(2)}
                           </td>
                           <td className="p-2.5 text-sm">
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              order.is_complete 
-                                ? 'bg-green-50 text-green-800' 
-                                : 'bg-orange-50 text-orange-800'
-                            }`}>
-                              {order.is_complete ? 'Complete' : 'Pending'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                order.is_complete 
+                                  ? 'bg-green-50 text-green-800' 
+                                  : 'bg-orange-50 text-orange-800'
+                              }`}>
+                                {order.is_complete ? 'Complete' : 'Pending'}
+                              </span>
+                              <button
+                                onClick={() => toggleOrderStatus(order.orderid, order.is_complete)}
+                                className="w-5 h-5 flex items-center justify-center bg-blue-500 text-white rounded text-xs font-bold hover:bg-blue-600 transition-colors"
+                                title={`Mark as ${order.is_complete ? 'Pending' : 'Complete'}`}
+                              >
+                                ⟳
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
