@@ -35,7 +35,6 @@ This guide will help you set up Google OAuth authentication for the Boba POS Sys
    - Click "Create"
    - Copy the **Client ID** and **Client Secret**
 
-
 ## Step 2: Set Up Database
 
 Run the migration to create the users table:
