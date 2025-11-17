@@ -13,6 +13,8 @@ router.post('/', orderController.createOrder);
 router.get('/items/:orderItemId', orderController.getOrderItemById);
 // PATCH /api/orders/items/:orderItemId/complete - Mark order item as complete/incomplete
 router.patch('/items/:orderItemId/complete', orderController.markOrderItemComplete);
+// PATCH /api/orders/:id/status - Update order completion status (must be before /:orderId/items)
+router.patch('/:id/status', orderController.updateOrderStatus);
 // GET /api/orders/:orderId/items - Get all items for a specific order
 router.get('/:orderId/items', orderController.getOrderItems);
 

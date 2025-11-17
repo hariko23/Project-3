@@ -37,6 +37,7 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
   onClick?: () => void; // Click handler (used when to is not provided)
   className?: string; // Additional CSS classes
   style?: React.CSSProperties; // Inline styles (for backward compatibility)
+  disabled?: boolean; // Disabled state
 }
 
 /**
@@ -50,8 +51,9 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
  * @param variant - Button style variant (default, destructive, outline, secondary, ghost, link)
  * @param size - Button size (default, sm, lg, icon)
  * @param className - Additional CSS classes to merge
+ * @param disabled - Disabled state
  */
-function Button({ children, to, onClick, variant, size, className, style }: ButtonProps) {
+function Button({ children, to, onClick, variant, size, className, style, disabled }: ButtonProps) {
   const buttonClasses = cn(buttonVariants({ variant, size }), className);
 
   if (to) {
@@ -63,7 +65,7 @@ function Button({ children, to, onClick, variant, size, className, style }: Butt
   }
 
   return (
-    <button onClick={onClick} className={buttonClasses} style={style}>
+    <button onClick={onClick} className={buttonClasses} style={style} disabled={disabled}>
       {children}
     </button>
   );

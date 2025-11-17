@@ -40,6 +40,7 @@ function CashierView() {
   const [orderItemsMap, setOrderItemsMap] = useState<Record<number, OrderItemDetail[]>>({});
   const [loadingItems, setLoadingItems] = useState<Set<number>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [weather, setWeather] = useState<{ temp: number; description: string; icon: string } | null>(null);
 
   // Extract unique categories from menu items
   const categories = useMemo(() => {
@@ -49,7 +50,58 @@ function CashierView() {
   useEffect(() => {
     loadMenuItems();
     loadIncompleteOrders();
+    fetchWeather();
   }, []);
+
+  /**
+   * Fetch weather data for College Station, TX
+   */
+  const fetchWeather = async () => {
+    try {
+      // Using Open-Meteo free weather API (no API key required)
+      const response = await fetch(
+        'https://api.open-meteo.com/v1/forecast?latitude=30.6280&longitude=-96.3344&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/Chicago'
+      );
+      const data = await response.json();
+      
+      // Map weather codes to descriptions
+      const weatherDescriptions: Record<number, string> = {
+        0: '☀️ Clear',
+        1: '🌤️ Mainly Clear',
+        2: '⛅ Partly Cloudy',
+        3: '☁️ Overcast',
+        45: '🌫️ Foggy',
+        48: '🌫️ Foggy',
+        51: '🌦️ Light Drizzle',
+        53: '🌦️ Drizzle',
+        55: '🌧️ Heavy Drizzle',
+        61: '🌧️ Light Rain',
+        63: '🌧️ Rain',
+        65: '🌧️ Heavy Rain',
+        71: '🌨️ Light Snow',
+        73: '🌨️ Snow',
+        75: '🌨️ Heavy Snow',
+        77: '🌨️ Snow Grains',
+        80: '🌦️ Rain Showers',
+        81: '🌧️ Rain Showers',
+        82: '🌧️ Heavy Rain Showers',
+        85: '🌨️ Snow Showers',
+        86: '🌨️ Heavy Snow Showers',
+        95: '⛈️ Thunderstorm',
+        96: '⛈️ Thunderstorm',
+        99: '⛈️ Severe Thunderstorm'
+      };
+      
+      const weatherCode = data.current.weather_code;
+      setWeather({
+        temp: Math.round(data.current.temperature_2m),
+        description: weatherDescriptions[weatherCode] || '🌡️ Unknown',
+        icon: ''
+      });
+    } catch (err) {
+      console.error('Error fetching weather:', err);
+    }
+  };
 
   /**
    * Load all menu items from the API
@@ -265,7 +317,17 @@ function CashierView() {
         <div className="flex items-center justify-between">
           <Button to="/">← Back to Menu</Button>
           <h1 className="text-2xl font-normal m-0">Cashier Order System</h1>
-          <div className="w-[120px]"></div>
+          <div className="w-[150px] text-right">
+            {weather ? (
+              <div className="text-sm">
+                <div className="font-bold">{weather.description}</div>
+                <div className="text-lg">{weather.temp}°F</div>
+                <div className="text-xs text-gray-600">College Station</div>
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500">Loading weather...</div>
+            )}
+          </div>
         </div>
       </div>
 
