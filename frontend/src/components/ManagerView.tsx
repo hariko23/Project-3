@@ -30,6 +30,7 @@ function ManagerView() {
   
   // Order filter state
   const [showOrderFilterModal, setShowOrderFilterModal] = useState(false);
+  const [orderDisplayLimit, setOrderDisplayLimit] = useState(50);
   const [orderFilters, setOrderFilters] = useState({
     dateFrom: '',
     dateTo: '',
@@ -88,12 +89,12 @@ function ManagerView() {
     });
   }, [orders, orderFilters]);
 
-  // Filtered orders for display (limited to 50 most recent)
+  // Filtered orders for display (limited to orderDisplayLimit most recent)
   const filteredOrders = useMemo(() => {
     return [...allFilteredOrders]
       .sort((a, b) => new Date(b.timeoforder).getTime() - new Date(a.timeoforder).getTime())
-      .slice(0, 50);
-  }, [allFilteredOrders]);
+      .slice(0, orderDisplayLimit);
+  }, [allFilteredOrders, orderDisplayLimit]);
 
   // Filter product usage based on selected category or drink
   const filteredProductUsage = useMemo(() => {
@@ -306,6 +307,27 @@ function ManagerView() {
   const applyOrderFilters = () => {
     setShowOrderFilterModal(false);
   };
+
+  /**
+   * Load 50 more orders
+   */
+  const loadMore50Orders = () => {
+    setOrderDisplayLimit(prev => prev + 50);
+  };
+
+  /**
+   * Load all matching orders
+   */
+  const loadAllOrders = () => {
+    setOrderDisplayLimit(allFilteredOrders.length);
+  };
+
+  /**
+   * Reset order display limit when filters change
+   */
+  useEffect(() => {
+    setOrderDisplayLimit(50);
+  }, [orderFilters]);
 
   /**
    * Toggle order completion status
@@ -835,6 +857,18 @@ function ManagerView() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Load More Controls */}
+              {allFilteredOrders.length > filteredOrders.length && (
+                <div className="mt-4 flex gap-3 justify-center">
+                  <Button onClick={loadMore50Orders}>
+                    Load 50 More Orders
+                  </Button>
+                  <Button onClick={loadAllOrders} className="bg-blue-600">
+                    Load All ({allFilteredOrders.length - filteredOrders.length} more)
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </>
