@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { cva, type VariantProps } from 'class-variance-authority';
+import type { ReactNode, CSSProperties } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -32,11 +33,11 @@ const buttonVariants = cva(
 );
 
 interface ButtonProps extends VariantProps<typeof buttonVariants> {
-  children: React.ReactNode; // Button content
+  children: ReactNode; // Button content
   to?: string; // If provided, renders as a Link instead of button
   onClick?: () => void; // Click handler (used when to is not provided)
   className?: string; // Additional CSS classes
-  style?: React.CSSProperties; // Inline styles (for backward compatibility)
+  style?: CSSProperties; // Inline styles (for backward compatibility)
   disabled?: boolean; // Disabled state
 }
 

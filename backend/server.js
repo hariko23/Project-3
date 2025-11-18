@@ -83,7 +83,8 @@ process.on('SIGINT', async () => {
 module.exports = app;
 
 // Only listen if not in Vercel environment
-if (process.env.VERCEL !== '1') {
+// Vercel sets VERCEL=1, but we also check for VERCEL_ENV to be safe
+if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
     app.listen(port, () => {
         console.log(`Server running on http://localhost:${port}`);
     });
