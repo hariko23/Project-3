@@ -4,6 +4,7 @@ import type { MenuItem } from '../api/menuApi';
 import { createOrder, getAllOrders, getOrderItems, markOrderItemComplete } from '../api/orderApi';
 import type { OrderResponse, OrderItemDetail } from '../api/orderApi';
 import Button from './ui/Button';
+import Receipt from './Receipt';
 
 /**
  * Order item structure for the current order being built
@@ -41,6 +42,13 @@ function CashierView() {
   const [loadingItems, setLoadingItems] = useState<Set<number>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [weather, setWeather] = useState<{ temp: number; description: string; icon: string } | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<{
+    orderNumber: number;
+    items: Array<{ name: string; quantity: number; price: number }>;
+    total: number;
+    timestamp: string;
+  } | null>(null);
 
   // Extract unique categories from menu items
   const categories = useMemo(() => {
@@ -295,7 +303,22 @@ function CashierView() {
       };
 
       const result = await createOrder(orderData);
-      alert(`Order #${result.orderid} submitted successfully!\nTotal: $${getTotal().toFixed(2)}`);
+      
+      // Prepare receipt data
+      setReceiptData({
+        orderNumber: result.orderid,
+        items: currentOrder.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        total: getTotal(),
+        timestamp: orderData.timeoforder
+      });
+      
+      // Show receipt
+      setShowReceipt(true);
+      
       clearOrder();
       loadIncompleteOrders(); // Refresh incomplete orders list
     } catch (error) {
@@ -312,6 +335,17 @@ function CashierView() {
 
   return (
     <div className="bg-white h-screen flex flex-col p-4">
+      {/* Receipt Modal */}
+      {showReceipt && receiptData && (
+        <Receipt
+          orderNumber={receiptData.orderNumber}
+          items={receiptData.items}
+          total={receiptData.total}
+          timestamp={receiptData.timestamp}
+          onClose={() => setShowReceipt(false)}
+        />
+      )}
+      
       {/* Header */}
       <div className="mb-4 border-b border-gray-300 pb-2.5 shrink-0">
         <div className="flex items-center justify-between">
