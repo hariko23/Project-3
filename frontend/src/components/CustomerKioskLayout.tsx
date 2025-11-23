@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
 import { createOrder } from '../api/orderApi';
@@ -227,6 +228,13 @@ function CustomerKioskLayout() {
 
       {/* Header */}
       <div className="bg-white border-b-2 border-gray-300 text-gray-800 p-6 shadow-sm">
+        <div className="flex justify-between items-center mb-4">
+          <Link to="/home">
+            <Button className="bg-gray-200 hover:bg-gray-300 text-gray-800">
+              ← Back to Home
+            </Button>
+          </Link>
+        </div>
         <h1 className="text-4xl font-bold text-center mb-2">Welcome to Boba Shop</h1>
         <p className="text-center text-lg text-gray-600">Order your favorite drinks</p>
       </div>
