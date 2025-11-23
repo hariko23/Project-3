@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAllInventory, addInventoryItem, updateInventoryQuantity } from '../api/inventoryApi';
 import type { InventoryItem } from '../api/inventoryApi';
-import { getAllMenuItems, getMenuItemIngredients, updateMenuItemIngredient, addMenuItemIngredient, removeMenuItemIngredient } from '../api/menuApi';
+import { getAllMenuItems, getMenuItemIngredients, updateMenuItemIngredient, addMenuItemIngredient, removeMenuItemIngredient, addMenuItem, updateMenuItem, deleteMenuItem } from '../api/menuApi';
 import type { MenuItem, MenuItemIngredient } from '../api/menuApi';
 import { getProductUsageData, getTotalSales } from '../api/analyticsApi';
 import { getAllOrders } from '../api/orderApi';
@@ -65,6 +65,15 @@ function ManagerView() {
   const [newIngredientId, setNewIngredientId] = useState<number | ''>('');
   const [newIngredientQty, setNewIngredientQty] = useState<number>(0);
   const [savingIngredients, setSavingIngredients] = useState(false);
+
+  // Menu item create/update modal state
+  const [showCreateMenuItemModal, setShowCreateMenuItemModal] = useState(false);
+  const [showUpdateMenuItemModal, setShowUpdateMenuItemModal] = useState(false);
+  const [editingMenuItem, setEditingMenuItem] = useState<MenuItem | null>(null);
+  const [newMenuItemName, setNewMenuItemName] = useState('');
+  const [newMenuItemCategory, setNewMenuItemCategory] = useState('');
+  const [newMenuItemPrice, setNewMenuItemPrice] = useState<number>(0);
+  const [updatingMenuItem, setUpdatingMenuItem] = useState(false);
   
   // Date range for sales
   const [startDate, setStartDate] = useState(() => {
@@ -502,6 +511,87 @@ function ManagerView() {
     }
   };
 
+  /**
+   * Handle creating a new menu item
+   */
+  const handleCreateMenuItem = async () => {
+    if (!newMenuItemName.trim() || !newMenuItemCategory.trim() || newMenuItemPrice <= 0) {
+      alert('Please fill in all fields with valid values');
+      return;
+    }
+
+    try {
+      await addMenuItem(newMenuItemCategory, newMenuItemName.trim(), newMenuItemPrice);
+      setShowCreateMenuItemModal(false);
+      setNewMenuItemName('');
+      setNewMenuItemCategory('');
+      setNewMenuItemPrice(0);
+      await loadMenuItems();
+      alert('Menu item created successfully');
+    } catch (err) {
+      console.error('Error creating menu item:', err);
+      alert('Failed to create menu item');
+    }
+  };
+
+  /**
+   * Handle updating a menu item
+   */
+  const handleUpdateMenuItem = async () => {
+    if (!editingMenuItem) return;
+
+    if (!editingMenuItem.menuitemname.trim() || !editingMenuItem.drinkcategory.trim() || editingMenuItem.price <= 0) {
+      alert('Please fill in all fields with valid values');
+      return;
+    }
+
+    setUpdatingMenuItem(true);
+    try {
+      await updateMenuItem(editingMenuItem.menuitemid, {
+        menuitemname: editingMenuItem.menuitemname.trim(),
+        drinkcategory: editingMenuItem.drinkcategory,
+        price: editingMenuItem.price
+      });
+      setShowUpdateMenuItemModal(false);
+      setEditingMenuItem(null);
+      await loadMenuItems();
+      alert('Menu item updated successfully');
+    } catch (err) {
+      console.error('Error updating menu item:', err);
+      alert('Failed to update menu item');
+    } finally {
+      setUpdatingMenuItem(false);
+    }
+  };
+
+  /**
+   * Handle deleting a menu item
+   * @param menuItem - Menu item to delete
+   */
+  const handleDeleteMenuItem = async (menuItem: MenuItem) => {
+    if (!confirm(`Are you sure you want to delete "${menuItem.menuitemname}"? This will also delete all associated ingredients.`)) {
+      return;
+    }
+
+    try {
+      await deleteMenuItem(menuItem.menuitemid);
+      await loadMenuItems();
+      alert('Menu item deleted successfully');
+    } catch (err) {
+      console.error('Error deleting menu item:', err);
+      alert('Failed to delete menu item');
+    }
+  };
+
+  /**
+   * Open update modal for a menu item
+   * @param menuItem - Menu item to edit
+   */
+  const handleEditMenuItem = (menuItem: MenuItem) => {
+    setEditingMenuItem({ ...menuItem });
+    setShowUpdateMenuItemModal(true);
+  };
+
   return (
     <div className="bg-white min-h-screen p-4">
       {/* Header */}
@@ -659,7 +749,12 @@ function ManagerView() {
           {/* Menu Items Tab */}
           {activeTab === 'menu' && (
             <div>
-              <h2 className="text-lg font-normal mb-4">Menu Items</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-normal m-0">Menu Items</h2>
+                <Button onClick={() => setShowCreateMenuItemModal(true)}>
+                  + Create Menu Item
+                </Button>
+              </div>
               
               {/* Category Filter */}
               <div className="mb-4">
@@ -704,9 +799,17 @@ function ManagerView() {
                             <td className="p-2.5 text-sm">{item.drinkcategory}</td>
                             <td className="p-2.5 text-sm">${item.price.toFixed(2)}</td>
                             <td className="p-2.5">
-                              <Button onClick={() => handleShowIngredients(item)} size="sm" className="text-xs">
-                                View Ingredients
-                              </Button>
+                              <div className="flex gap-1.5">
+                                <Button onClick={() => handleShowIngredients(item)} size="sm" className="text-xs">
+                                  Ingredients
+                                </Button>
+                                <Button onClick={() => handleEditMenuItem(item)} size="sm" className="text-xs bg-blue-500">
+                                  Edit
+                                </Button>
+                                <Button onClick={() => handleDeleteMenuItem(item)} size="sm" className="text-xs bg-red-500">
+                                  Delete
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -820,6 +923,139 @@ function ManagerView() {
                         disabled={savingIngredients}
                       >
                         {savingIngredients ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Create Menu Item Modal */}
+              {showCreateMenuItemModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateMenuItemModal(false)}>
+                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                    <h3 className="text-lg font-bold mb-4">Create New Menu Item</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Menu Item Name</label>
+                        <input
+                          type="text"
+                          value={newMenuItemName}
+                          onChange={(e) => setNewMenuItemName(e.target.value)}
+                          placeholder="Enter menu item name"
+                          className="w-full p-2 border border-gray-300 text-sm rounded"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Category</label>
+                        <select
+                          value={newMenuItemCategory}
+                          onChange={(e) => setNewMenuItemCategory(e.target.value)}
+                          className="w-full p-2 border border-gray-300 text-sm bg-white rounded"
+                        >
+                          <option value="">Select category...</option>
+                          {categories.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Price</label>
+                        <input
+                          type="number"
+                          value={newMenuItemPrice}
+                          onChange={(e) => setNewMenuItemPrice(parseFloat(e.target.value) || 0)}
+                          placeholder="0.00"
+                          min="0"
+                          step="0.01"
+                          className="w-full p-2 border border-gray-300 text-sm rounded"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 flex justify-end gap-2">
+                      <Button 
+                        onClick={() => {
+                          setShowCreateMenuItemModal(false);
+                          setNewMenuItemName('');
+                          setNewMenuItemCategory('');
+                          setNewMenuItemPrice(0);
+                        }}
+                        className="bg-gray-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateMenuItem}>
+                        Create
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Update Menu Item Modal */}
+              {showUpdateMenuItemModal && editingMenuItem && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowUpdateMenuItemModal(false)}>
+                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                    <h3 className="text-lg font-bold mb-4">Edit Menu Item</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Menu Item Name</label>
+                        <input
+                          type="text"
+                          value={editingMenuItem.menuitemname}
+                          onChange={(e) => setEditingMenuItem({ ...editingMenuItem, menuitemname: e.target.value })}
+                          placeholder="Enter menu item name"
+                          className="w-full p-2 border border-gray-300 text-sm rounded"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Category</label>
+                        <select
+                          value={editingMenuItem.drinkcategory}
+                          onChange={(e) => setEditingMenuItem({ ...editingMenuItem, drinkcategory: e.target.value })}
+                          className="w-full p-2 border border-gray-300 text-sm bg-white rounded"
+                        >
+                          {categories.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Price</label>
+                        <input
+                          type="number"
+                          value={editingMenuItem.price}
+                          onChange={(e) => setEditingMenuItem({ ...editingMenuItem, price: parseFloat(e.target.value) || 0 })}
+                          placeholder="0.00"
+                          min="0"
+                          step="0.01"
+                          className="w-full p-2 border border-gray-300 text-sm rounded"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 flex justify-end gap-2">
+                      <Button 
+                        onClick={() => {
+                          setShowUpdateMenuItemModal(false);
+                          setEditingMenuItem(null);
+                        }}
+                        className="bg-gray-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleUpdateMenuItem} disabled={updatingMenuItem}>
+                        {updatingMenuItem ? 'Updating...' : 'Update'}
                       </Button>
                     </div>
                   </div>

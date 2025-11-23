@@ -80,6 +80,90 @@ const updateMenuItemPrice = async (req, res) => {
 };
 
 /**
+ * Update a menu item (name, category, price)
+ * @route PUT /api/menu/:id
+ * @param {number} id - Menu item ID (from URL params)
+ * @param {string} drinkcategory - Category of the drink (optional)
+ * @param {string} menuitemname - Name of the menu item (optional)
+ * @param {number} price - Price of the menu item (optional)
+ * @returns {Object} Updated menu item
+ */
+const updateMenuItem = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { drinkcategory, menuitemname, price } = req.body;
+
+        // Build dynamic update query based on provided fields
+        const updates = [];
+        const values = [];
+        let paramCount = 1;
+
+        if (drinkcategory !== undefined) {
+            updates.push(`drinkcategory = $${paramCount}`);
+            values.push(drinkcategory);
+            paramCount++;
+        }
+
+        if (menuitemname !== undefined) {
+            updates.push(`menuitemname = $${paramCount}`);
+            values.push(menuitemname);
+            paramCount++;
+        }
+
+        if (price !== undefined) {
+            updates.push(`price = $${paramCount}`);
+            values.push(price);
+            paramCount++;
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({ success: false, error: 'At least one field must be provided for update' });
+        }
+
+        values.push(id);
+        const query = `UPDATE menuitems SET ${updates.join(', ')} WHERE menuitemid = $${paramCount} RETURNING *`;
+        const result = await pool.query(query, values);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Menu item not found' });
+        }
+
+        res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating menu item:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Delete a menu item
+ * @route DELETE /api/menu/:id
+ * @param {number} id - Menu item ID (from URL params)
+ * @returns {Object} Success confirmation
+ */
+const deleteMenuItem = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // First, delete associated menu item ingredients
+        await pool.query('DELETE FROM menuitemingredients WHERE menuitemid = $1', [id]);
+
+        // Then delete the menu item
+        const query = 'DELETE FROM menuitems WHERE menuitemid = $1 RETURNING *';
+        const result = await pool.query(query, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Menu item not found' });
+        }
+
+        res.json({ success: true, message: 'Menu item deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting menu item:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
  * Get ingredients for a specific menu item
  * @route GET /api/menu/:id/ingredients
  * @param {number} id - Menu item ID (from URL params)
@@ -212,6 +296,8 @@ module.exports = {
     getAllMenuItems,
     addMenuItem,
     updateMenuItemPrice,
+    updateMenuItem,
+    deleteMenuItem,
     getMenuItemIngredients,
     updateMenuItemIngredient,
     addMenuItemIngredient,

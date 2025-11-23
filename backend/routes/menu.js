@@ -9,6 +9,10 @@ router.get('/', menuController.getAllMenuItems);
 router.post('/', menuController.addMenuItem);
 // PUT /api/menu/:id/price - Update menu item price
 router.put('/:id/price', menuController.updateMenuItemPrice);
+// PUT /api/menu/:id - Update menu item (name, category, price)
+router.put('/:id', menuController.updateMenuItem);
+// DELETE /api/menu/:id - Delete a menu item
+router.delete('/:id', menuController.deleteMenuItem);
 // GET /api/menu/:id/ingredients - Get ingredients for a menu item
 router.get('/:id/ingredients', menuController.getMenuItemIngredients);
 // PUT /api/menu/:id/ingredients/:ingredientId - Update ingredient quantity for a menu item
