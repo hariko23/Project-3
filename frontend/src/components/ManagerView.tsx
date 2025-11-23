@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAllInventory, addInventoryItem, updateInventoryQuantity } from '../api/inventoryApi';
 import type { InventoryItem } from '../api/inventoryApi';
-import { getAllMenuItems } from '../api/menuApi';
-import type { MenuItem } from '../api/menuApi';
+import { getAllMenuItems, getMenuItemIngredients } from '../api/menuApi';
+import type { MenuItem, MenuItemIngredient } from '../api/menuApi';
 import { getProductUsageData, getTotalSales } from '../api/analyticsApi';
 import { getAllOrders } from '../api/orderApi';
 import type { OrderResponse } from '../api/orderApi';
@@ -54,6 +54,12 @@ function ManagerView() {
   const [newItemQuantity, setNewItemQuantity] = useState(0);
   const [editingItem, setEditingItem] = useState<number | null>(null);
   const [editQuantity, setEditQuantity] = useState(0);
+  
+  // Menu item ingredients modal state
+  const [showIngredientsModal, setShowIngredientsModal] = useState(false);
+  const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
+  const [menuItemIngredients, setMenuItemIngredients] = useState<MenuItemIngredient[]>([]);
+  const [loadingIngredients, setLoadingIngredients] = useState(false);
   
   // Date range for sales
   const [startDate, setStartDate] = useState(() => {
@@ -381,6 +387,26 @@ function ManagerView() {
     }
   };
 
+  /**
+   * Open ingredients modal for a menu item
+   * @param menuItem - Menu item to show ingredients for
+   */
+  const handleShowIngredients = async (menuItem: MenuItem) => {
+    setSelectedMenuItem(menuItem);
+    setShowIngredientsModal(true);
+    setLoadingIngredients(true);
+    try {
+      const ingredients = await getMenuItemIngredients(menuItem.menuitemid);
+      setMenuItemIngredients(ingredients);
+    } catch (err) {
+      console.error('Error loading ingredients:', err);
+      alert('Failed to load ingredients');
+      setMenuItemIngredients([]);
+    } finally {
+      setLoadingIngredients(false);
+    }
+  };
+
   return (
     <div className="bg-white min-h-screen p-4">
       {/* Header */}
@@ -570,23 +596,69 @@ function ManagerView() {
                         <th className="p-2.5 text-left text-sm font-bold">Drink Name</th>
                         <th className="p-2.5 text-left text-sm font-bold">Category</th>
                         <th className="p-2.5 text-left text-sm font-bold">Price</th>
+                        <th className="p-2.5 text-left text-sm font-bold">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {menuItems
                         .filter(item => selectedCategory === 'all' || item.drinkcategory === selectedCategory)
                         .map((item) => (
-                          <tr key={item.menuitemid} className="border-b border-gray-200">
+                          <tr key={item.menuitemid} className="border-b border-gray-200 hover:bg-gray-50">
                             <td className="p-2.5 text-sm">{item.menuitemid}</td>
                             <td className="p-2.5 text-sm">{item.menuitemname}</td>
                             <td className="p-2.5 text-sm">{item.drinkcategory}</td>
                             <td className="p-2.5 text-sm">${item.price.toFixed(2)}</td>
+                            <td className="p-2.5">
+                              <Button onClick={() => handleShowIngredients(item)} size="sm" className="text-xs">
+                                View Ingredients
+                              </Button>
+                            </td>
                           </tr>
                         ))}
                     </tbody>
                   </table>
                 </div>
               </div>
+
+              {/* Ingredients Modal */}
+              {showIngredientsModal && selectedMenuItem && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowIngredientsModal(false)}>
+                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                    <h3 className="text-lg font-bold mb-4">Ingredients for {selectedMenuItem.menuitemname}</h3>
+                    
+                    {loadingIngredients ? (
+                      <div className="text-center p-5">Loading ingredients...</div>
+                    ) : menuItemIngredients.length === 0 ? (
+                      <div className="text-gray-500 p-5 text-center">No ingredients found for this menu item</div>
+                    ) : (
+                      <div className="border border-gray-300 rounded">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-gray-100 border-b border-gray-300">
+                              <th className="p-2.5 text-left text-sm font-bold">Ingredient Name</th>
+                              <th className="p-2.5 text-left text-sm font-bold">Quantity</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {menuItemIngredients.map((ingredient) => (
+                              <tr key={ingredient.ingredientid} className="border-b border-gray-200">
+                                <td className="p-2.5 text-sm">{ingredient.ingredientname}</td>
+                                <td className="p-2.5 text-sm">{ingredient.ingredientqty}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    
+                    <div className="mt-4 flex justify-end">
+                      <Button onClick={() => setShowIngredientsModal(false)}>
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
