@@ -108,9 +108,112 @@ const getMenuItemIngredients = async (req, res) => {
     }
 };
 
+/**
+ * Update ingredient quantity for a menu item
+ * @route PUT /api/menu/:id/ingredients/:ingredientId
+ * @param {number} id - Menu item ID (from URL params)
+ * @param {number} ingredientId - Ingredient ID (from URL params)
+ * @param {number} ingredientqty - New quantity value (from request body)
+ * @returns {Object} Updated menu item ingredient
+ */
+const updateMenuItemIngredient = async (req, res) => {
+    try {
+        const { id, ingredientId } = req.params;
+        const { ingredientqty } = req.body;
+
+        // Validate required parameter
+        if (ingredientqty === undefined || ingredientqty < 0) {
+            return res.status(400).json({ success: false, error: 'ingredientqty is required and must be non-negative' });
+        }
+
+        // Update menu item ingredient quantity
+        const query = 'UPDATE menuitemingredients SET ingredientqty = $1 WHERE menuitemid = $2 AND ingredientid = $3 RETURNING *';
+        const result = await pool.query(query, [ingredientqty, id, ingredientId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Menu item ingredient not found' });
+        }
+
+        res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('Error updating menu item ingredient:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Add an ingredient to a menu item
+ * @route POST /api/menu/:id/ingredients
+ * @param {number} id - Menu item ID (from URL params)
+ * @param {number} ingredientid - Ingredient ID (from request body)
+ * @param {number} ingredientqty - Quantity value (from request body)
+ * @returns {Object} Newly created menu item ingredient
+ */
+const addMenuItemIngredient = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ingredientid, ingredientqty } = req.body;
+
+        // Validate required fields
+        if (ingredientid === undefined || ingredientqty === undefined || ingredientqty < 0) {
+            return res.status(400).json({ success: false, error: 'ingredientid and ingredientqty are required, and ingredientqty must be non-negative' });
+        }
+
+        // Check if ingredient already exists for this menu item
+        const checkQuery = 'SELECT * FROM menuitemingredients WHERE menuitemid = $1 AND ingredientid = $2';
+        const checkResult = await pool.query(checkQuery, [id, ingredientid]);
+        
+        if (checkResult.rows.length > 0) {
+            return res.status(400).json({ success: false, error: 'Ingredient already exists for this menu item. Use update instead.' });
+        }
+
+        // Generate next available ID
+        const idResult = await pool.query('SELECT COALESCE(MAX(menuitemingredientid), 0) + 1 as next_id FROM menuitemingredients');
+        const nextId = idResult.rows[0].next_id;
+
+        // Add menu item ingredient
+        const query = 'INSERT INTO menuitemingredients (menuitemingredientid, menuitemid, ingredientid, ingredientqty) VALUES ($1, $2, $3, $4) RETURNING *';
+        const result = await pool.query(query, [nextId, id, ingredientid, ingredientqty]);
+
+        res.status(201).json({ success: true, data: result.rows[0] });
+    } catch (error) {
+        console.error('Error adding menu item ingredient:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+/**
+ * Remove an ingredient from a menu item
+ * @route DELETE /api/menu/:id/ingredients/:ingredientId
+ * @param {number} id - Menu item ID (from URL params)
+ * @param {number} ingredientId - Ingredient ID (from URL params)
+ * @returns {Object} Success confirmation
+ */
+const removeMenuItemIngredient = async (req, res) => {
+    try {
+        const { id, ingredientId } = req.params;
+
+        // Delete menu item ingredient
+        const query = 'DELETE FROM menuitemingredients WHERE menuitemid = $1 AND ingredientid = $2 RETURNING *';
+        const result = await pool.query(query, [id, ingredientId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Menu item ingredient not found' });
+        }
+
+        res.json({ success: true, message: 'Ingredient removed successfully' });
+    } catch (error) {
+        console.error('Error removing menu item ingredient:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getAllMenuItems,
     addMenuItem,
     updateMenuItemPrice,
-    getMenuItemIngredients
+    getMenuItemIngredients,
+    updateMenuItemIngredient,
+    addMenuItemIngredient,
+    removeMenuItemIngredient
 };

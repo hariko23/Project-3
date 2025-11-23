@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAllInventory, addInventoryItem, updateInventoryQuantity } from '../api/inventoryApi';
 import type { InventoryItem } from '../api/inventoryApi';
-import { getAllMenuItems, getMenuItemIngredients } from '../api/menuApi';
+import { getAllMenuItems, getMenuItemIngredients, updateMenuItemIngredient, addMenuItemIngredient, removeMenuItemIngredient } from '../api/menuApi';
 import type { MenuItem, MenuItemIngredient } from '../api/menuApi';
 import { getProductUsageData, getTotalSales } from '../api/analyticsApi';
 import { getAllOrders } from '../api/orderApi';
@@ -60,6 +60,11 @@ function ManagerView() {
   const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
   const [menuItemIngredients, setMenuItemIngredients] = useState<MenuItemIngredient[]>([]);
   const [loadingIngredients, setLoadingIngredients] = useState(false);
+  const [editingIngredients, setEditingIngredients] = useState<Record<number, number>>({});
+  const [availableInventory, setAvailableInventory] = useState<InventoryItem[]>([]);
+  const [newIngredientId, setNewIngredientId] = useState<number | ''>('');
+  const [newIngredientQty, setNewIngredientQty] = useState<number>(0);
+  const [savingIngredients, setSavingIngredients] = useState(false);
   
   // Date range for sales
   const [startDate, setStartDate] = useState(() => {
@@ -395,15 +400,105 @@ function ManagerView() {
     setSelectedMenuItem(menuItem);
     setShowIngredientsModal(true);
     setLoadingIngredients(true);
+    setEditingIngredients({});
+    setNewIngredientId('');
+    setNewIngredientQty(0);
     try {
-      const ingredients = await getMenuItemIngredients(menuItem.menuitemid);
+      const [ingredients, inventory] = await Promise.all([
+        getMenuItemIngredients(menuItem.menuitemid),
+        getAllInventory()
+      ]);
       setMenuItemIngredients(ingredients);
+      setAvailableInventory(inventory);
     } catch (err) {
       console.error('Error loading ingredients:', err);
       alert('Failed to load ingredients');
       setMenuItemIngredients([]);
+      setAvailableInventory([]);
     } finally {
       setLoadingIngredients(false);
+    }
+  };
+
+  /**
+   * Update ingredient quantity in local state
+   * @param ingredientId - Ingredient ID
+   * @param quantity - New quantity
+   */
+  const handleIngredientQuantityChange = (ingredientId: number, quantity: number) => {
+    setEditingIngredients(prev => ({
+      ...prev,
+      [ingredientId]: quantity
+    }));
+  };
+
+  /**
+   * Save all ingredient changes
+   */
+  const handleSaveIngredients = async () => {
+    if (!selectedMenuItem) return;
+
+    setSavingIngredients(true);
+    try {
+      // Update existing ingredients
+      const updatePromises = Object.entries(editingIngredients).map(([ingredientId, quantity]) => {
+        const numId = parseInt(ingredientId);
+        const currentIngredient = menuItemIngredients.find(ing => ing.ingredientid === numId);
+        if (currentIngredient && currentIngredient.ingredientqty !== quantity) {
+          return updateMenuItemIngredient(selectedMenuItem.menuitemid, numId, quantity);
+        }
+        return Promise.resolve();
+      });
+
+      // Add new ingredient if selected
+      if (newIngredientId && newIngredientQty > 0) {
+        updatePromises.push(
+          addMenuItemIngredient(selectedMenuItem.menuitemid, Number(newIngredientId), newIngredientQty)
+        );
+      }
+
+      await Promise.all(updatePromises);
+
+      // Reload ingredients
+      const ingredients = await getMenuItemIngredients(selectedMenuItem.menuitemid);
+      setMenuItemIngredients(ingredients);
+      setEditingIngredients({});
+      setNewIngredientId('');
+      setNewIngredientQty(0);
+      alert('Ingredients updated successfully');
+    } catch (err) {
+      console.error('Error saving ingredients:', err);
+      alert('Failed to save ingredients');
+    } finally {
+      setSavingIngredients(false);
+    }
+  };
+
+  /**
+   * Remove an ingredient from a menu item
+   * @param ingredientId - Ingredient ID to remove
+   */
+  const handleRemoveIngredient = async (ingredientId: number) => {
+    if (!selectedMenuItem) return;
+
+    if (!confirm('Are you sure you want to remove this ingredient?')) {
+      return;
+    }
+
+    try {
+      await removeMenuItemIngredient(selectedMenuItem.menuitemid, ingredientId);
+      // Reload ingredients
+      const ingredients = await getMenuItemIngredients(selectedMenuItem.menuitemid);
+      setMenuItemIngredients(ingredients);
+      setEditingIngredients(prev => {
+        const updated = { ...prev };
+        delete updated[ingredientId];
+        return updated;
+      });
+      alert('Ingredient removed successfully');
+    } catch (err) {
+      console.error('Error removing ingredient:', err);
+      alert('Failed to remove ingredient');
     }
   };
 
@@ -623,37 +718,108 @@ function ManagerView() {
               {/* Ingredients Modal */}
               {showIngredientsModal && selectedMenuItem && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowIngredientsModal(false)}>
-                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                     <h3 className="text-lg font-bold mb-4">Ingredients for {selectedMenuItem.menuitemname}</h3>
                     
                     {loadingIngredients ? (
                       <div className="text-center p-5">Loading ingredients...</div>
-                    ) : menuItemIngredients.length === 0 ? (
-                      <div className="text-gray-500 p-5 text-center">No ingredients found for this menu item</div>
                     ) : (
-                      <div className="border border-gray-300 rounded">
-                        <table className="w-full border-collapse">
-                          <thead>
-                            <tr className="bg-gray-100 border-b border-gray-300">
-                              <th className="p-2.5 text-left text-sm font-bold">Ingredient Name</th>
-                              <th className="p-2.5 text-left text-sm font-bold">Quantity</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {menuItemIngredients.map((ingredient) => (
-                              <tr key={ingredient.ingredientid} className="border-b border-gray-200">
-                                <td className="p-2.5 text-sm">{ingredient.ingredientname}</td>
-                                <td className="p-2.5 text-sm">{ingredient.ingredientqty}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                      <>
+                        {/* Existing Ingredients */}
+                        {menuItemIngredients.length === 0 ? (
+                          <div className="text-gray-500 p-5 text-center">No ingredients found for this menu item</div>
+                        ) : (
+                          <div className="border border-gray-300 rounded mb-4">
+                            <table className="w-full border-collapse">
+                              <thead>
+                                <tr className="bg-gray-100 border-b border-gray-300">
+                                  <th className="p-2.5 text-left text-sm font-bold">Ingredient Name</th>
+                                  <th className="p-2.5 text-left text-sm font-bold">Quantity</th>
+                                  <th className="p-2.5 text-left text-sm font-bold">Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {menuItemIngredients.map((ingredient) => {
+                                  const editedQty = editingIngredients[ingredient.ingredientid] !== undefined 
+                                    ? editingIngredients[ingredient.ingredientid] 
+                                    : ingredient.ingredientqty;
+                                  return (
+                                    <tr key={ingredient.ingredientid} className="border-b border-gray-200">
+                                      <td className="p-2.5 text-sm">{ingredient.ingredientname}</td>
+                                      <td className="p-2.5">
+                                        <input
+                                          type="number"
+                                          value={editedQty}
+                                          onChange={(e) => handleIngredientQuantityChange(ingredient.ingredientid, parseInt(e.target.value) || 0)}
+                                          min="0"
+                                          className="p-1 border border-gray-300 text-sm w-20"
+                                        />
+                                      </td>
+                                      <td className="p-2.5">
+                                        <Button 
+                                          onClick={() => handleRemoveIngredient(ingredient.ingredientid)} 
+                                          size="sm" 
+                                          className="text-xs bg-red-500"
+                                        >
+                                          Remove
+                                        </Button>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {/* Add New Ingredient */}
+                        <div className="border border-gray-300 rounded p-4 mb-4 bg-gray-50">
+                          <h4 className="text-sm font-bold mb-2">Add New Ingredient</h4>
+                          <div className="flex gap-2 items-center">
+                            <select
+                              value={newIngredientId}
+                              onChange={(e) => setNewIngredientId(e.target.value ? Number(e.target.value) : '')}
+                              className="flex-1 p-2 border border-gray-300 text-sm bg-white"
+                            >
+                              <option value="">Select ingredient...</option>
+                              {availableInventory
+                                .filter(inv => !menuItemIngredients.some(mi => mi.ingredientid === inv.ingredientid))
+                                .map((inv) => (
+                                  <option key={inv.ingredientid} value={inv.ingredientid}>
+                                    {inv.ingredientname}
+                                  </option>
+                                ))}
+                            </select>
+                            <input
+                              type="number"
+                              value={newIngredientQty}
+                              onChange={(e) => setNewIngredientQty(parseInt(e.target.value) || 0)}
+                              min="0"
+                              placeholder="Qty"
+                              className="p-2 border border-gray-300 text-sm w-24"
+                            />
+                          </div>
+                        </div>
+                      </>
                     )}
                     
-                    <div className="mt-4 flex justify-end">
-                      <Button onClick={() => setShowIngredientsModal(false)}>
-                        Close
+                    <div className="mt-4 flex justify-end gap-2">
+                      <Button 
+                        onClick={() => {
+                          setShowIngredientsModal(false);
+                          setEditingIngredients({});
+                          setNewIngredientId('');
+                          setNewIngredientQty(0);
+                        }}
+                        className="bg-gray-500"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleSaveIngredients}
+                        disabled={savingIngredients}
+                      >
+                        {savingIngredients ? 'Saving...' : 'Save Changes'}
                       </Button>
                     </div>
                   </div>

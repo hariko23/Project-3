@@ -54,3 +54,72 @@ export const getMenuItemIngredients = async (menuItemId: number): Promise<MenuIt
     }
     throw new Error(result.error || 'Failed to fetch menu item ingredients');
 };
+
+/**
+ * Update ingredient quantity for a menu item
+ * @param menuItemId - The ID of the menu item
+ * @param ingredientId - The ID of the ingredient
+ * @param ingredientqty - The new quantity
+ * @returns Promise resolving to the updated ingredient
+ * @throws Error if the API request fails
+ */
+export const updateMenuItemIngredient = async (menuItemId: number, ingredientId: number, ingredientqty: number): Promise<MenuItemIngredient> => {
+    const response = await fetch(`${API_BASE_URL}/menu/${menuItemId}/ingredients/${ingredientId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ingredientqty })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+        return result.data;
+    }
+    throw new Error(result.error || 'Failed to update menu item ingredient');
+};
+
+/**
+ * Add an ingredient to a menu item
+ * @param menuItemId - The ID of the menu item
+ * @param ingredientid - The ID of the ingredient to add
+ * @param ingredientqty - The quantity of the ingredient
+ * @returns Promise resolving to the newly added ingredient
+ * @throws Error if the API request fails
+ */
+export const addMenuItemIngredient = async (menuItemId: number, ingredientid: number, ingredientqty: number): Promise<MenuItemIngredient> => {
+    const response = await fetch(`${API_BASE_URL}/menu/${menuItemId}/ingredients`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ingredientid, ingredientqty })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+        return result.data;
+    }
+    throw new Error(result.error || 'Failed to add menu item ingredient');
+};
+
+/**
+ * Remove an ingredient from a menu item
+ * @param menuItemId - The ID of the menu item
+ * @param ingredientId - The ID of the ingredient to remove
+ * @returns Promise resolving to success confirmation
+ * @throws Error if the API request fails
+ */
+export const removeMenuItemIngredient = async (menuItemId: number, ingredientId: number): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/menu/${menuItemId}/ingredients/${ingredientId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    });
+
+    const result = await response.json();
+    if (!result.success) {
+        throw new Error(result.error || 'Failed to remove menu item ingredient');
+    }
+};
