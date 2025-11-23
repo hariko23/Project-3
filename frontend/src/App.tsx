@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } f
 import LandingPage from './components/LandingPage';
 import ManagerView from './components/ManagerView';
 import CashierView from './components/CashierView';
-import CustomerView from './components/CustomerView';
+import CustomerKioskLayout from './components/CustomerKioskLayout';
 import MenuBoardView from './components/MenuBoardView';
 import LoginPage from './components/LoginPage';
 import AccessibilityButton from './components/AccessibilityButton';
@@ -66,8 +66,8 @@ function Navigation() {
     }
   };
 
-  // Don't show navigation on login page
-  if (location.pathname === '/' || location.pathname === '/login') {
+  // Don't show navigation on login page or customer kiosk
+  if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/customer') {
     return null;
   }
 
@@ -132,7 +132,7 @@ function App() {
             path="/customer" 
             element={
               <ProtectedRoute>
-                <CustomerView />
+                <CustomerKioskLayout />
               </ProtectedRoute>
             } 
           />
