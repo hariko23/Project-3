@@ -79,8 +79,38 @@ const updateMenuItemPrice = async (req, res) => {
     }
 };
 
+/**
+ * Get ingredients for a specific menu item
+ * @route GET /api/menu/:id/ingredients
+ * @param {number} id - Menu item ID (from URL params)
+ * @returns {Array} Array of ingredients with ingredientid, ingredientname, and ingredientqty
+ */
+const getMenuItemIngredients = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const query = `
+            SELECT 
+                mi.ingredientid,
+                i.ingredientname,
+                mi.ingredientqty
+            FROM menuitemingredients mi
+            INNER JOIN inventory i ON mi.ingredientid = i.ingredientid
+            WHERE mi.menuitemid = $1
+            ORDER BY i.ingredientname
+        `;
+        const result = await pool.query(query, [id]);
+        
+        res.json({ success: true, data: result.rows });
+    } catch (error) {
+        console.error('Error fetching menu item ingredients:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getAllMenuItems,
     addMenuItem,
-    updateMenuItemPrice
+    updateMenuItemPrice,
+    getMenuItemIngredients
 };

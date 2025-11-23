@@ -9,5 +9,7 @@ router.get('/', menuController.getAllMenuItems);
 router.post('/', menuController.addMenuItem);
 // PUT /api/menu/:id/price - Update menu item price
 router.put('/:id/price', menuController.updateMenuItemPrice);
+// GET /api/menu/:id/ingredients - Get ingredients for a menu item
+router.get('/:id/ingredients', menuController.getMenuItemIngredients);
 
 module.exports = router;
