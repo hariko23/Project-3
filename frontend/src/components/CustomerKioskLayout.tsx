@@ -206,24 +206,16 @@ function CustomerKioskLayout() {
     <div className="bg-white min-h-screen">
       {/* Receipt Modal */}
       {showReceipt && receiptData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <Receipt
-              orderNumber={receiptData.orderNumber}
-              items={receiptData.items}
-              total={receiptData.total}
-              timestamp={receiptData.timestamp}
-            />
-            <div className="mt-4 flex justify-center">
-              <Button onClick={() => {
-                setShowReceipt(false);
-                setReceiptData(null);
-              }}>
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
+        <Receipt
+          orderNumber={receiptData.orderNumber}
+          items={receiptData.items}
+          total={receiptData.total}
+          timestamp={receiptData.timestamp}
+          onClose={() => {
+            setShowReceipt(false);
+            setReceiptData(null);
+          }}
+        />
       )}
 
       {/* Header */}
