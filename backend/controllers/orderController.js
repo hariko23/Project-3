@@ -100,17 +100,8 @@ const createOrder = async (req, res) => {
             await client.query(itemQuery, [itemId, orderId, item.menuitemid, item.quantity, false]);
         }
 
-        // Update inventory
-        for (const orderItem of orderItems) {
-            const ingredientQuery = 'SELECT ingredientID, ingredientQty FROM MenuItemIngredients WHERE menuItemID = $1';
-            const ingredientResult = await client.query(ingredientQuery, [orderItem.menuitemid]);
-            
-            for (const row of ingredientResult.rows) {
-                const totalNeeded = row.ingredientqty * orderItem.quantity;
-                const updateQuery = 'UPDATE inventory SET ingredientCount = ingredientCount - $1 WHERE ingredientID = $2';
-                await client.query(updateQuery, [totalNeeded, row.ingredientid]);
-            }
-        }
+        // Note: Inventory is updated when order items are marked as complete, not when order is created
+        // This allows cashiers to prepare orders and update inventory only when items are actually completed
 
         await client.query('COMMIT');
         res.status(201).json({ success: true, data: orderResult.rows[0] });
@@ -213,43 +204,89 @@ const getOrderItemById = async (req, res) => {
 /**
  * Mark an order item as complete or incomplete
  * Also checks if all items in the order are complete and updates the order status accordingly
+ * Updates inventory when items are marked as complete
  * @route PATCH /api/orders/items/:orderItemId/complete
  * @param {number} orderItemId - Order item ID (from URL params)
  * @param {boolean} isComplete - Completion status (from request body)
  * @returns {Object} Updated order item
  */
 const markOrderItemComplete = async (req, res) => {
+    const client = await pool.connect();
+    
     try {
+        await client.query('BEGIN');
+        
         const { orderItemId } = req.params;
         const { isComplete } = req.body;
         
-        // Update the order item completion status
-        const updateQuery = 'UPDATE orderitems SET is_complete = $1 WHERE orderitemid = $2 RETURNING *';
-        const result = await pool.query(updateQuery, [isComplete !== false, orderItemId]);
+        // Get the current order item to check its previous status and get menu item details
+        const getItemQuery = 'SELECT orderitemid, orderid, menuitemid, quantity, is_complete FROM orderitems WHERE orderitemid = $1';
+        const getItemResult = await client.query(getItemQuery, [orderItemId]);
         
-        if (result.rows.length === 0) {
+        if (getItemResult.rows.length === 0) {
+            await client.query('ROLLBACK');
             return res.status(404).json({ success: false, error: 'Order item not found' });
         }
         
+        const orderItem = getItemResult.rows[0];
+        const wasComplete = orderItem.is_complete;
+        const willBeComplete = isComplete !== false;
+        
+        // Update the order item completion status
+        const updateQuery = 'UPDATE orderitems SET is_complete = $1 WHERE orderitemid = $2 RETURNING *';
+        const result = await client.query(updateQuery, [willBeComplete, orderItemId]);
+        
+        // Update inventory when marking as complete (only if transitioning from incomplete to complete)
+        if (willBeComplete && !wasComplete) {
+            // Get ingredients needed for this menu item
+            const ingredientQuery = 'SELECT ingredientid, ingredientqty FROM menuitemingredients WHERE menuitemid = $1';
+            const ingredientResult = await client.query(ingredientQuery, [orderItem.menuitemid]);
+            
+            // Update inventory for each ingredient
+            for (const row of ingredientResult.rows) {
+                const totalNeeded = row.ingredientqty * orderItem.quantity;
+                const updateInventoryQuery = 'UPDATE inventory SET ingredientcount = ingredientcount - $1 WHERE ingredientid = $2';
+                await client.query(updateInventoryQuery, [totalNeeded, row.ingredientid]);
+            }
+        } else if (!willBeComplete && wasComplete) {
+            // Restore inventory when marking as incomplete (only if transitioning from complete to incomplete)
+            const ingredientQuery = 'SELECT ingredientid, ingredientqty FROM menuitemingredients WHERE menuitemid = $1';
+            const ingredientResult = await client.query(ingredientQuery, [orderItem.menuitemid]);
+            
+            // Restore inventory for each ingredient
+            for (const row of ingredientResult.rows) {
+                const totalToRestore = row.ingredientqty * orderItem.quantity;
+                const updateInventoryQuery = 'UPDATE inventory SET ingredientcount = ingredientcount + $1 WHERE ingredientid = $2';
+                await client.query(updateInventoryQuery, [totalToRestore, row.ingredientid]);
+            }
+        }
+        
         // Check if all items in the order are complete, and update order status if so
-        const orderId = result.rows[0].orderid;
+        const orderId = orderItem.orderid;
         const checkQuery = `
             SELECT COUNT(*) as total, SUM(CASE WHEN is_complete = true THEN 1 ELSE 0 END) as completed
             FROM orderitems
             WHERE orderid = $1
         `;
-        const checkResult = await pool.query(checkQuery, [orderId]);
+        const checkResult = await client.query(checkQuery, [orderId]);
         const { total, completed } = checkResult.rows[0];
         
         if (parseInt(completed) === parseInt(total)) {
             // All items are complete, mark the order as complete
-            await pool.query('UPDATE orders SET is_complete = true WHERE orderid = $1', [orderId]);
+            await client.query('UPDATE orders SET is_complete = true WHERE orderid = $1', [orderId]);
+        } else {
+            // Not all items complete, ensure order is marked as incomplete
+            await client.query('UPDATE orders SET is_complete = false WHERE orderid = $1', [orderId]);
         }
         
+        await client.query('COMMIT');
         res.json({ success: true, data: result.rows[0] });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error updating order item:', error);
         res.status(500).json({ success: false, error: error.message });
+    } finally {
+        client.release();
     }
 };
 
