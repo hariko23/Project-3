@@ -1389,14 +1389,20 @@ function ManagerView() {
 
           {/* Orders Tab */}
           {activeTab === 'orders' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-normal m-0">Order Overview</h2>
-                <div className="flex gap-2">
-                  <Button onClick={() => setShowOrderFilterModal(true)}>
+            <div className="max-w-7xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-800">Order Overview</h2>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => setShowOrderFilterModal(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium"
+                  >
                     Filter Orders
                   </Button>
-                  <Button onClick={loadOrders}>
+                  <Button 
+                    onClick={loadOrders}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium"
+                  >
                     Refresh
                   </Button>
                 </div>
@@ -1405,92 +1411,104 @@ function ManagerView() {
               {/* Filter Modal */}
               {showOrderFilterModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowOrderFilterModal(false)}>
-                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                    <h3 className="text-lg font-bold mb-4">Filter Orders</h3>
-                    
-                    {/* Date Range Filter */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2">Date Range:</label>
-                      <div className="flex gap-2 items-center">
+                  <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-6">
+                      <h3 className="text-2xl font-bold text-white">Filter Orders</h3>
+                    </div>
+                    <div className="p-6">
+                      {/* Date Range Filter */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date Range:</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="date"
+                            value={orderFilters.dateFrom}
+                            onChange={(e) => setOrderFilters({...orderFilters, dateFrom: e.target.value})}
+                            className="p-3 border-2 border-gray-300 rounded-lg text-base flex-1 focus:border-purple-500 focus:outline-none"
+                            placeholder="From"
+                          />
+                          <span className="text-sm font-medium text-gray-600">to</span>
+                          <input
+                            type="date"
+                            value={orderFilters.dateTo}
+                            onChange={(e) => setOrderFilters({...orderFilters, dateTo: e.target.value})}
+                            className="p-3 border-2 border-gray-300 rounded-lg text-base flex-1 focus:border-purple-500 focus:outline-none"
+                            placeholder="To"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Total Amount Filter */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Total Amount:</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="number"
+                            value={orderFilters.minTotal}
+                            onChange={(e) => setOrderFilters({...orderFilters, minTotal: e.target.value})}
+                            className="p-3 border-2 border-gray-300 rounded-lg text-base flex-1 focus:border-purple-500 focus:outline-none"
+                            placeholder="Min"
+                            min="0"
+                            step="0.01"
+                          />
+                          <span className="text-sm font-medium text-gray-600">to</span>
+                          <input
+                            type="number"
+                            value={orderFilters.maxTotal}
+                            onChange={(e) => setOrderFilters({...orderFilters, maxTotal: e.target.value})}
+                            className="p-3 border-2 border-gray-300 rounded-lg text-base flex-1 focus:border-purple-500 focus:outline-none"
+                            placeholder="Max"
+                            min="0"
+                            step="0.01"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Status Filter */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status:</label>
+                        <select
+                          value={orderFilters.status}
+                          onChange={(e) => setOrderFilters({...orderFilters, status: e.target.value as 'all' | 'complete' | 'pending'})}
+                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                        >
+                          <option value="all">All</option>
+                          <option value="complete">Complete</option>
+                          <option value="pending">Pending</option>
+                        </select>
+                      </div>
+
+                      {/* Order ID Filter */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Order ID:</label>
                         <input
-                          type="date"
-                          value={orderFilters.dateFrom}
-                          onChange={(e) => setOrderFilters({...orderFilters, dateFrom: e.target.value})}
-                          className="p-2 border border-gray-300 text-sm rounded flex-1"
-                          placeholder="From"
-                        />
-                        <span className="text-sm">to</span>
-                        <input
-                          type="date"
-                          value={orderFilters.dateTo}
-                          onChange={(e) => setOrderFilters({...orderFilters, dateTo: e.target.value})}
-                          className="p-2 border border-gray-300 text-sm rounded flex-1"
-                          placeholder="To"
+                          type="text"
+                          value={orderFilters.orderId}
+                          onChange={(e) => setOrderFilters({...orderFilters, orderId: e.target.value})}
+                          className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          placeholder="Enter order ID"
                         />
                       </div>
-                    </div>
-
-                    {/* Total Amount Filter */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2">Total Amount:</label>
-                      <div className="flex gap-2 items-center">
-                        <input
-                          type="number"
-                          value={orderFilters.minTotal}
-                          onChange={(e) => setOrderFilters({...orderFilters, minTotal: e.target.value})}
-                          className="p-2 border border-gray-300 text-sm rounded flex-1"
-                          placeholder="Min"
-                          min="0"
-                          step="0.01"
-                        />
-                        <span className="text-sm">to</span>
-                        <input
-                          type="number"
-                          value={orderFilters.maxTotal}
-                          onChange={(e) => setOrderFilters({...orderFilters, maxTotal: e.target.value})}
-                          className="p-2 border border-gray-300 text-sm rounded flex-1"
-                          placeholder="Max"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Status Filter */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-2">Status:</label>
-                      <select
-                        value={orderFilters.status}
-                        onChange={(e) => setOrderFilters({...orderFilters, status: e.target.value as 'all' | 'complete' | 'pending'})}
-                        className="w-full p-2 border border-gray-300 text-sm rounded bg-white"
-                      >
-                        <option value="all">All</option>
-                        <option value="complete">Complete</option>
-                        <option value="pending">Pending</option>
-                      </select>
-                    </div>
-
-                    {/* Order ID Filter */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium mb-2">Order ID:</label>
-                      <input
-                        type="text"
-                        value={orderFilters.orderId}
-                        onChange={(e) => setOrderFilters({...orderFilters, orderId: e.target.value})}
-                        className="w-full p-2 border border-gray-300 text-sm rounded"
-                        placeholder="Enter order ID"
-                      />
                     </div>
 
                     {/* Modal Actions */}
-                    <div className="flex gap-2 justify-end">
-                      <Button onClick={resetOrderFilters} className="bg-gray-500">
+                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex gap-3 justify-end">
+                      <Button 
+                        onClick={resetOrderFilters} 
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                      >
                         Reset
                       </Button>
-                      <Button onClick={() => setShowOrderFilterModal(false)} className="bg-gray-500">
+                      <Button 
+                        onClick={() => setShowOrderFilterModal(false)} 
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                      >
                         Cancel
                       </Button>
-                      <Button onClick={applyOrderFilters}>
+                      <Button 
+                        onClick={applyOrderFilters}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium"
+                      >
                         Apply Filters
                       </Button>
                     </div>
@@ -1499,76 +1517,79 @@ function ManagerView() {
               )}
 
               {/* Summary Cards */}
-              <div className="grid grid-cols-3 gap-4 mb-5">
-                <div className="border border-gray-300 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-600 mb-1.5">Total Revenue for applied filters</div>
-                  <div className="text-2xl font-bold">${getTotalRevenue().toFixed(2)}</div>
+              <div className="grid grid-cols-3 gap-6 mb-6">
+                <div className="bg-white border-2 border-purple-200 rounded-lg p-6 shadow-sm">
+                  <div className="text-sm font-medium text-gray-600 mb-2">Total Revenue for applied filters</div>
+                  <div className="text-3xl font-bold text-purple-600">${getTotalRevenue().toFixed(2)}</div>
                 </div>
-                <div className="border border-gray-300 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-600 mb-1.5">Completed Orders for applied filters</div>
-                  <div className="text-2xl font-bold">{getCompletedOrders()}</div>
+                <div className="bg-white border-2 border-green-200 rounded-lg p-6 shadow-sm">
+                  <div className="text-sm font-medium text-gray-600 mb-2">Completed Orders for applied filters</div>
+                  <div className="text-3xl font-bold text-green-600">{getCompletedOrders()}</div>
                 </div>
-                <div className="border border-gray-300 p-4 bg-gray-50">
-                  <div className="text-xs text-gray-600 mb-1.5">Pending Orders</div>
-                  <div className="text-2xl font-bold">{getPendingOrders()}</div>
+                <div className="bg-white border-2 border-orange-200 rounded-lg p-6 shadow-sm">
+                  <div className="text-sm font-medium text-gray-600 mb-2">Pending Orders</div>
+                  <div className="text-3xl font-bold text-orange-600">{getPendingOrders()}</div>
                 </div>
               </div>
 
               {/* Orders List */}
-              <div className="border border-gray-300">
-                <div className="bg-gray-100 p-2 border-b border-gray-300 text-sm text-gray-600">
+              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-purple-100 p-4 border-b-2 border-purple-200 text-base font-medium text-purple-800">
                   Showing {filteredOrders.length} of {allFilteredOrders.length} matching orders
                   {allFilteredOrders.length !== orders.length && ` (${orders.length} total orders)`}
                 </div>
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100 border-b-2 border-gray-300">
-                      <th className="p-2.5 text-left text-sm font-bold w-8"></th>
-                      <th className="p-2.5 text-left text-sm font-bold">Order ID</th>
-                      <th className="p-2.5 text-left text-sm font-bold">Date</th>
-                      <th className="p-2.5 text-left text-sm font-bold">Total</th>
-                      <th className="p-2.5 text-left text-sm font-bold">Status</th>
-                    </tr>
-                  </thead>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-purple-50 border-b-2 border-purple-200">
+                        <th className="p-4 text-left text-sm font-bold text-gray-700 w-12"></th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Order ID</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Date</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Total</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Status</th>
+                      </tr>
+                    </thead>
                   <tbody>
                     {filteredOrders.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="p-5 text-center text-gray-500">
-                          No orders found
+                        <td colSpan={5} className="p-8 text-center">
+                          <div className="text-gray-400">
+                            <div className="text-lg">No orders found</div>
+                          </div>
                         </td>
                       </tr>
                     ) : (
                       filteredOrders.map((order) => (
                         <>
-                          <tr key={order.orderid} className="border-b border-gray-200 hover:bg-gray-50">
-                            <td className="p-2.5">
+                          <tr key={order.orderid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
+                            <td className="p-4">
                               <button
                                 onClick={() => toggleOrderDetails(order.orderid)}
-                                className="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded text-sm font-bold transition-colors"
+                                className="w-8 h-8 flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-base font-bold transition-colors shadow-sm"
                                 title="View order details"
                               >
                                 {expandedOrderId === order.orderid ? '−' : '+'}
                               </button>
                             </td>
-                            <td className="p-2.5 text-sm">#{order.orderid}</td>
-                            <td className="p-2.5 text-sm">
+                            <td className="p-4 text-base font-medium text-gray-800">#{order.orderid}</td>
+                            <td className="p-4 text-base text-gray-700">
                               {new Date(order.timeoforder).toLocaleString()}
                             </td>
-                            <td className="p-2.5 text-sm">
+                            <td className="p-4 text-base font-semibold text-green-600">
                               ${Number(order.totalcost).toFixed(2)}
                             </td>
-                            <td className="p-2.5 text-sm">
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded text-xs ${
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <span className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                                   order.is_complete 
-                                    ? 'bg-green-50 text-green-800' 
-                                    : 'bg-orange-50 text-orange-800'
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-orange-100 text-orange-800'
                                 }`}>
                                   {order.is_complete ? 'Complete' : 'Pending'}
                                 </span>
                                 <button
                                   onClick={() => toggleOrderStatus(order.orderid, order.is_complete)}
-                                  className="w-5 h-5 flex items-center justify-center bg-blue-500 text-white rounded text-xs font-bold hover:bg-blue-600 transition-colors"
+                                  className="w-8 h-8 flex items-center justify-center bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
                                   title={`Mark as ${order.is_complete ? 'Pending' : 'Complete'}`}
                                 >
                                   ⟳
@@ -1577,46 +1598,47 @@ function ManagerView() {
                             </td>
                           </tr>
                           {expandedOrderId === order.orderid && (
-                            <tr key={`${order.orderid}-details`} className="bg-gray-50">
-                              <td colSpan={5} className="p-4">
+                            <tr key={`${order.orderid}-details`} className="bg-purple-50">
+                              <td colSpan={5} className="p-6">
                                 {loadingOrderItems === order.orderid ? (
-                                  <div className="text-center text-sm text-gray-500 py-4">
+                                  <div className="text-center text-base text-gray-500 py-6">
                                     Loading order items...
                                   </div>
                                 ) : orderItems[order.orderid] && orderItems[order.orderid].length > 0 ? (
-                                  <div className="bg-white border border-gray-200 rounded">
-                                    <div className="bg-gray-100 px-3 py-2 border-b border-gray-200">
-                                      <h4 className="text-sm font-bold">Order Items</h4>
+                                  <div className="bg-white border-2 border-purple-200 rounded-lg overflow-hidden shadow-sm">
+                                    <div className="bg-gradient-to-r from-purple-600 to-purple-500 px-4 py-3">
+                                      <h4 className="text-base font-bold text-white">Order Items</h4>
                                     </div>
-                                    <table className="w-full">
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full">
                                       <thead>
-                                        <tr className="bg-gray-50 border-b border-gray-200">
-                                          <th className="p-2 text-left text-xs font-bold">Drink Name</th>
-                                          <th className="p-2 text-left text-xs font-bold">Size</th>
-                                          <th className="p-2 text-left text-xs font-bold">Toppings</th>
-                                          <th className="p-2 text-left text-xs font-bold">Quantity</th>
-                                          <th className="p-2 text-left text-xs font-bold">Price</th>
-                                          <th className="p-2 text-left text-xs font-bold">Subtotal</th>
+                                        <tr className="bg-purple-50 border-b-2 border-purple-200">
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Drink Name</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Size</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Toppings</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Quantity</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Price</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Subtotal</th>
                                         </tr>
                                       </thead>
                                       <tbody>
                                         {orderItems[order.orderid].map((item) => {
                                           const toppings = item.toppings ? item.toppings.split(',').filter(t => t.trim()) : [];
                                           return (
-                                          <tr key={item.orderitemid} className="border-b border-gray-100 last:border-0">
-                                            <td className="p-2 text-xs">{item.menuitemname}</td>
-                                            <td className="p-2 text-xs">
-                                              <span className="px-2 py-0.5 bg-purple-100 text-purple-800 rounded text-xs font-medium">
+                                          <tr key={item.orderitemid} className="border-b border-gray-100 last:border-0 hover:bg-purple-50 transition-colors">
+                                            <td className="p-3 text-sm font-medium text-gray-800">{item.menuitemname}</td>
+                                            <td className="p-3 text-sm">
+                                              <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium">
                                                 {item.size}
                                               </span>
                                             </td>
-                                            <td className="p-2 text-xs">
+                                            <td className="p-3 text-sm">
                                               {toppings.length > 0 ? (
-                                                <div className="flex flex-wrap gap-1">
+                                                <div className="flex flex-wrap gap-1.5">
                                                   {toppings.map((toppingId, idx) => {
                                                     const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId.trim());
                                                     return (
-                                                      <span key={idx} className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">
+                                                      <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-medium">
                                                         {topping?.name || toppingId}
                                                       </span>
                                                     );
@@ -1626,18 +1648,19 @@ function ManagerView() {
                                                 <span className="text-gray-400">None</span>
                                               )}
                                             </td>
-                                            <td className="p-2 text-xs">{item.quantity}</td>
-                                            <td className="p-2 text-xs">${Number(item.price).toFixed(2)}</td>
-                                            <td className="p-2 text-xs font-semibold">
+                                            <td className="p-3 text-sm font-medium text-gray-700">{item.quantity}</td>
+                                            <td className="p-3 text-sm font-semibold text-green-600">${Number(item.price).toFixed(2)}</td>
+                                            <td className="p-3 text-sm font-bold text-purple-600">
                                               ${(Number(item.price) * item.quantity).toFixed(2)}
                                             </td>
                                           </tr>
                                         );})}
                                       </tbody>
-                                    </table>
-                                  </div>
+                                      </table>
+                                    </div>
+                                    </div>
                                 ) : (
-                                  <div className="text-center text-sm text-gray-500 py-4">
+                                  <div className="text-center text-base text-gray-400 py-6">
                                     No items found for this order
                                   </div>
                                 )}
@@ -1649,15 +1672,22 @@ function ManagerView() {
                     )}
                   </tbody>
                 </table>
+                </div>
               </div>
 
               {/* Load More Controls */}
               {allFilteredOrders.length > filteredOrders.length && (
-                <div className="mt-4 flex gap-3 justify-center">
-                  <Button onClick={loadMore50Orders}>
+                <div className="mt-6 flex gap-4 justify-center">
+                  <Button 
+                    onClick={loadMore50Orders}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-base"
+                  >
                     Load 50 More Orders
                   </Button>
-                  <Button onClick={loadAllOrders} className="bg-blue-600">
+                  <Button 
+                    onClick={loadAllOrders} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium text-base"
+                  >
                     Load All ({allFilteredOrders.length - filteredOrders.length} more)
                   </Button>
                 </div>
