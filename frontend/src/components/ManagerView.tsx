@@ -12,6 +12,7 @@ import ProductUsageChart from './reports/ProductUsageChart';
 import XReport from './reports/XReport';
 import ZReport from './reports/ZReport';
 import SalesReport from './reports/SalesReport';
+import Translator from './Translator';
 
 /**
  * Available toppings with their prices
@@ -652,7 +653,7 @@ function ManagerView() {
         <div className="flex items-center justify-between">
           <Button to="/">← Back to Menu</Button>
           <h1 className="text-2xl font-normal m-0">Manager Dashboard</h1>
-          <div className="w-[120px]"></div>
+          <Translator />
         </div>
       </div>
 

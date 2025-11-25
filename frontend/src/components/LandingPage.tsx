@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import Translator from './Translator';
 
 /**
  * Landing Page component
@@ -11,7 +12,10 @@ import { Link } from 'react-router-dom';
  */
 function LandingPage() {
   return (
-    <div className="p-5 text-center bg-white">
+    <div className="p-5 text-center bg-white min-h-screen">
+      <div className="flex justify-end mb-4">
+        <Translator />
+      </div>
       <h1 className="text-2xl font-normal mb-10">Boba POS System</h1>
       {/* Navigation links to different application views */}
       <div className="mt-10">

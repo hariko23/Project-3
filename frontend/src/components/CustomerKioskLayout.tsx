@@ -5,6 +5,7 @@ import type { MenuItem } from '../api/menuApi';
 import { createOrder } from '../api/orderApi';
 import Button from './ui/Button';
 import Receipt from './Receipt';
+import Translator from './Translator';
 
 /**
  * Available drink sizes
@@ -502,6 +503,7 @@ function CustomerKioskLayout() {
               ← Back to Home
             </Button>
           </Link>
+          <Translator />
         </div>
         <h1 className="text-4xl font-bold text-center mb-2">Welcome to Boba Shop</h1>
         <p className="text-center text-lg text-gray-600">Order your favorite drinks</p>

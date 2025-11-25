@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
+import Translator from './Translator';
 
 /**
  * Seasonal menu items configuration
@@ -70,6 +71,9 @@ function MenuBoardView() {
 
   return (
     <div className="p-8 bg-white min-h-screen">
+      <div className="flex justify-end mb-4">
+        <Translator />
+      </div>
       <h1 className="text-4xl font-bold text-center mb-8">Menu</h1>
       
       <div className="max-w-6xl mx-auto">

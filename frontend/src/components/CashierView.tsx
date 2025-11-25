@@ -5,6 +5,7 @@ import { createOrder, getAllOrders, getOrderItems, markOrderItemComplete } from 
 import type { OrderResponse, OrderItemDetail } from '../api/orderApi';
 import Button from './ui/Button';
 import Receipt from './Receipt';
+import Translator from './Translator';
 
 /**
  * Available drink sizes
@@ -447,16 +448,19 @@ function CashierView() {
         <div className="flex items-center justify-between">
           <Button to="/">← Back to Menu</Button>
           <h1 className="text-2xl font-normal m-0">Cashier Order System</h1>
-          <div className="w-[150px] text-right">
-            {weather ? (
-              <div className="text-sm">
-                <div className="font-bold">{weather.description}</div>
-                <div className="text-lg">{weather.temp}°F</div>
-                <div className="text-xs text-gray-600">College Station</div>
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500">Loading weather...</div>
-            )}
+          <div className="flex items-center gap-4">
+            <Translator />
+            <div className="w-[150px] text-right">
+              {weather ? (
+                <div className="text-sm">
+                  <div className="font-bold">{weather.description}</div>
+                  <div className="text-lg">{weather.temp}°F</div>
+                  <div className="text-xs text-gray-600">College Station</div>
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500">Loading weather...</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
