@@ -647,155 +647,211 @@ function ManagerView() {
   };
 
   return (
-    <div className="bg-white min-h-screen p-4">
+    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-white min-h-screen">
       {/* Header */}
-      <div className="mb-4 border-b border-gray-300 pb-2.5">
-        <div className="flex items-center justify-between">
-          <Button to="/">← Back to Menu</Button>
-          <h1 className="text-2xl font-normal m-0">Manager Dashboard</h1>
+      <div className="bg-white border-b-2 border-purple-200 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <Button to="/" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium">
+            ← Back to Menu
+          </Button>
+          <h1 className="text-4xl font-bold text-gray-800">Manager Dashboard</h1>
           <Translator />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2.5 mb-5 border-b border-gray-300">
-        <button
-          onClick={() => setActiveTab('inventory')}
-          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
-            activeTab === 'inventory' 
-              ? 'border-b-2 border-black font-bold' 
-              : 'border-b-2 border-transparent font-normal'
-          }`}
-        >
-          Inventory
-        </button>
-        <button
-          onClick={() => setActiveTab('menu')}
-          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
-            activeTab === 'menu' 
-              ? 'border-b-2 border-black font-bold' 
-              : 'border-b-2 border-transparent font-normal'
-          }`}
-        >
-          Menu Items
-        </button>
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
-            activeTab === 'analytics' 
-              ? 'border-b-2 border-black font-bold' 
-              : 'border-b-2 border-transparent font-normal'
-          }`}
-        >
-          Analytics
-        </button>
-        <button
-          onClick={() => setActiveTab('orders')}
-          className={`px-5 py-2.5 border-none bg-transparent cursor-pointer text-sm ${
-            activeTab === 'orders' 
-              ? 'border-b-2 border-black font-bold' 
-              : 'border-b-2 border-transparent font-normal'
-          }`}
-        >
-          Orders
-        </button>
+      <div className="bg-white border-b-2 border-purple-200 shadow-sm">
+        <div className="flex gap-2 px-6">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
+              activeTab === 'inventory' 
+                ? 'border-b-4 border-purple-600 text-purple-600' 
+                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+            }`}
+          >
+            Inventory
+          </button>
+          <button
+            onClick={() => setActiveTab('menu')}
+            className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
+              activeTab === 'menu' 
+                ? 'border-b-4 border-purple-600 text-purple-600' 
+                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+            }`}
+          >
+            Menu Items
+          </button>
+          <button
+            onClick={() => setActiveTab('analytics')}
+            className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
+              activeTab === 'analytics' 
+                ? 'border-b-4 border-purple-600 text-purple-600' 
+                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+            }`}
+          >
+            Analytics
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
+              activeTab === 'orders' 
+                ? 'border-b-4 border-purple-600 text-purple-600' 
+                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+            }`}
+          >
+            Orders
+          </button>
+        </div>
       </div>
 
       {/* Content */}
       {loading ? (
-        <div className="text-center p-10">Loading...</div>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="text-2xl font-semibold text-purple-600 mb-2">Loading...</div>
+            <div className="text-gray-600">Please wait</div>
+          </div>
+        </div>
       ) : (
-        <>
+        <div className="p-6">
           {/* Inventory Tab */}
           {activeTab === 'inventory' && (
-            <div>
-              <h2 className="text-lg font-normal mb-4">Inventory Management</h2>
+            <div className="max-w-7xl mx-auto">
+              <h2 className="text-3xl font-bold mb-6 text-gray-800">Inventory Management</h2>
 
               {/* Add New Item Form */}
-              <div className="border border-gray-300 p-4 mb-5 bg-gray-50">
-                <h3 className="text-base font-normal mt-0 mb-2.5">Add New Inventory Item</h3>
-                <div className="flex gap-2.5 items-center">
-                  <input
-                    type="text"
-                    placeholder="Item name"
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    className="p-2 border border-gray-300 text-sm flex-1"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Quantity"
-                    value={newItemQuantity}
-                    onChange={(e) => setNewItemQuantity(parseInt(e.target.value) || 0)}
-                    min="0"
-                    className="p-2 border border-gray-300 text-sm w-[120px]"
-                  />
-                  <Button onClick={handleAddInventory}>Add Item</Button>
+              <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6 shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">
+                  Add New Inventory Item
+                </h3>
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter ingredient name"
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div className="w-48">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={newItemQuantity}
+                      onChange={(e) => setNewItemQuantity(parseInt(e.target.value) || 0)}
+                      min="0"
+                      className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleAddInventory}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-base transition-colors"
+                  >
+                    Add Item
+                  </Button>
                 </div>
               </div>
 
               {/* Inventory List (Raw Ingredients) */}
-              <div className="border border-gray-300">
-                <div className="bg-gray-100 p-2.5 border-b-2 border-gray-300">
-                  <h3 className="text-base font-bold m-0">Raw Ingredients</h3>
+              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4">
+                  <h3 className="text-xl font-bold text-white">
+                    Raw Ingredients Inventory
+                  </h3>
                 </div>
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-300">
-                      <th className="p-2.5 text-left text-sm font-bold">ID</th>
-                      <th className="p-2.5 text-left text-sm font-bold">Item Name</th>
-                      <th className="p-2.5 text-left text-sm font-bold">Quantity</th>
-                      <th className="p-2.5 text-left text-sm font-bold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inventory.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-5 text-center text-gray-500">
-                          No inventory items found
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-purple-50 border-b-2 border-purple-200">
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">ID</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Item Name</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Quantity</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Status</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Actions</th>
                       </tr>
-                    ) : (
-                      inventory.map((item) => (
-                        <tr key={item.ingredientid} className="border-b border-gray-200">
-                          <td className="p-2.5 text-sm">{item.ingredientid}</td>
-                          <td className="p-2.5 text-sm">{item.ingredientname}</td>
-                          <td className="p-2.5 text-sm">
-                            {editingItem === item.ingredientid ? (
-                              <input
-                                type="number"
-                                value={editQuantity}
-                                onChange={(e) => setEditQuantity(parseInt(e.target.value) || 0)}
-                                min="0"
-                                className="p-1 border border-gray-300 text-sm w-[100px]"
-                              />
-                            ) : (
-                              <span className={item.ingredientcount < 10 ? 'text-red-600' : 'text-black'}>
-                                {item.ingredientcount}
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-2.5">
-                            {editingItem === item.ingredientid ? (
-                              <div className="flex gap-1.5">
-                                <Button onClick={() => handleUpdateQuantity(item.ingredientid)} size="sm" className="text-xs">
-                                  Save
-                                </Button>
-                                <Button onClick={cancelEdit} size="sm" className="text-xs">
-                                  Cancel
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button onClick={() => startEdit(item)} size="sm" className="text-xs">
-                                Edit
-                              </Button>
-                            )}
+                    </thead>
+                    <tbody>
+                      {inventory.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center">
+                            <div className="text-gray-400">
+                              <div className="text-lg">No inventory items found</div>
+                            </div>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        inventory.map((item) => (
+                          <tr key={item.ingredientid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
+                            <td className="p-4 text-base font-medium text-gray-700">{item.ingredientid}</td>
+                            <td className="p-4 text-base font-medium text-gray-800">{item.ingredientname}</td>
+                            <td className="p-4 text-base">
+                              {editingItem === item.ingredientid ? (
+                                <input
+                                  type="number"
+                                  value={editQuantity}
+                                  onChange={(e) => setEditQuantity(parseInt(e.target.value) || 0)}
+                                  min="0"
+                                  className="p-2 border-2 border-purple-300 rounded-lg text-base w-32 focus:border-purple-500 focus:outline-none"
+                                />
+                              ) : (
+                                <span className={`font-semibold ${item.ingredientcount < 10 ? 'text-red-600' : 'text-green-600'}`}>
+                                  {item.ingredientcount}
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {item.ingredientcount < 10 ? (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                  Low Stock
+                                </span>
+                              ) : item.ingredientcount < 30 ? (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                  Medium
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                  In Stock
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4">
+                              {editingItem === item.ingredientid ? (
+                                <div className="flex gap-2">
+                                  <Button 
+                                    onClick={() => handleUpdateQuantity(item.ingredientid)} 
+                                    size="sm" 
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button 
+                                    onClick={cancelEdit} 
+                                    size="sm" 
+                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button 
+                                  onClick={() => startEdit(item)} 
+                                  size="sm" 
+                                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                >
+                                  ✏️ Edit
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1539,7 +1595,7 @@ function ManagerView() {
               )}
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
