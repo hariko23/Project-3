@@ -255,7 +255,13 @@ function CustomerKioskLayout() {
       setMenuItems(items);
     } catch (err) {
       console.error('Error loading menu items:', err);
-      alert('Failed to load menu items');
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('Full error details:', {
+        message: errorMessage,
+        error: err,
+        apiUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
+      });
+      alert(`Failed to load menu items: ${errorMessage}\n\nCheck console for details.`);
     } finally {
       setLoading(false);
     }
