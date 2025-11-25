@@ -858,21 +858,24 @@ function ManagerView() {
 
           {/* Menu Items Tab */}
           {activeTab === 'menu' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-normal m-0">Menu Items</h2>
-                <Button onClick={() => setShowCreateMenuItemModal(true)}>
+            <div className="max-w-7xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-800">Menu Items</h2>
+                <Button 
+                  onClick={() => setShowCreateMenuItemModal(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium text-base transition-colors"
+                >
                   + Create Menu Item
                 </Button>
               </div>
               
               {/* Category Filter */}
-              <div className="mb-4">
-                <label className="text-sm mr-2">Filter by Drink Category:</label>
+              <div className="mb-6 bg-white border-2 border-purple-200 rounded-lg p-4 shadow-sm">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Drink Category:</label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="p-2 border border-gray-300 text-sm bg-white w-64"
+                  className="w-full md:w-64 p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none transition-colors"
                 >
                   <option value="all">All Categories</option>
                   {categories.map((category) => (
@@ -884,39 +887,57 @@ function ManagerView() {
               </div>
 
               {/* Menu Items List (Drinks) */}
-              <div className="border border-gray-300">
-                <div className="bg-gray-100 p-2.5 border-b-2 border-gray-300">
-                  <h3 className="text-base font-bold m-0">Menu Items ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})</h3>
+              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4">
+                  <h3 className="text-xl font-bold text-white">
+                    Menu Items ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})
+                  </h3>
                 </div>
-                <div className="max-h-[400px] overflow-y-auto">
-                  <table className="w-full border-collapse">
-                    <thead className="sticky top-0 bg-gray-50">
-                      <tr className="border-b border-gray-300">
-                        <th className="p-2.5 text-left text-sm font-bold">ID</th>
-                        <th className="p-2.5 text-left text-sm font-bold">Drink Name</th>
-                        <th className="p-2.5 text-left text-sm font-bold">Category</th>
-                        <th className="p-2.5 text-left text-sm font-bold">Price</th>
-                        <th className="p-2.5 text-left text-sm font-bold">Actions</th>
+                <div className="max-h-[500px] overflow-y-auto">
+                  <table className="w-full">
+                    <thead className="sticky top-0 bg-purple-50 z-10">
+                      <tr className="border-b-2 border-purple-200">
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">ID</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Drink Name</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Category</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Price</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {menuItems
                         .filter(item => selectedCategory === 'all' || item.drinkcategory === selectedCategory)
                         .map((item) => (
-                          <tr key={item.menuitemid} className="border-b border-gray-200 hover:bg-gray-50">
-                            <td className="p-2.5 text-sm">{item.menuitemid}</td>
-                            <td className="p-2.5 text-sm">{item.menuitemname}</td>
-                            <td className="p-2.5 text-sm">{item.drinkcategory}</td>
-                            <td className="p-2.5 text-sm">${item.price.toFixed(2)}</td>
-                            <td className="p-2.5">
-                              <div className="flex gap-1.5">
-                                <Button onClick={() => handleShowIngredients(item)} size="sm" className="text-xs">
+                          <tr key={item.menuitemid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
+                            <td className="p-4 text-base font-medium text-gray-700">{item.menuitemid}</td>
+                            <td className="p-4 text-base font-medium text-gray-800">{item.menuitemname}</td>
+                            <td className="p-4 text-base">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                                {item.drinkcategory}
+                              </span>
+                            </td>
+                            <td className="p-4 text-base font-semibold text-green-600">${item.price.toFixed(2)}</td>
+                            <td className="p-4">
+                              <div className="flex gap-2">
+                                <Button 
+                                  onClick={() => handleShowIngredients(item)} 
+                                  size="sm" 
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                >
                                   Ingredients
                                 </Button>
-                                <Button onClick={() => handleEditMenuItem(item)} size="sm" className="text-xs bg-blue-500">
-                                  Edit
+                                <Button 
+                                  onClick={() => handleEditMenuItem(item)} 
+                                  size="sm" 
+                                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                >
+                                  ✏️ Edit
                                 </Button>
-                                <Button onClick={() => handleDeleteMenuItem(item)} size="sm" className="text-xs bg-red-500">
+                                <Button 
+                                  onClick={() => handleDeleteMenuItem(item)} 
+                                  size="sm" 
+                                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                >
                                   Delete
                                 </Button>
                               </div>
@@ -931,8 +952,11 @@ function ManagerView() {
               {/* Ingredients Modal */}
               {showIngredientsModal && selectedMenuItem && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowIngredientsModal(false)}>
-                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                    <h3 className="text-lg font-bold mb-4">Ingredients for {selectedMenuItem.menuitemname}</h3>
+                  <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-6">
+                      <h3 className="text-2xl font-bold text-white">Ingredients for {selectedMenuItem.menuitemname}</h3>
+                    </div>
+                    <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
                     
                     {loadingIngredients ? (
                       <div className="text-center p-5">Loading ingredients...</div>
@@ -940,15 +964,17 @@ function ManagerView() {
                       <>
                         {/* Existing Ingredients */}
                         {menuItemIngredients.length === 0 ? (
-                          <div className="text-gray-500 p-5 text-center">No ingredients found for this menu item</div>
+                          <div className="text-gray-400 p-8 text-center">
+                            <div className="text-lg">No ingredients found for this menu item</div>
+                          </div>
                         ) : (
-                          <div className="border border-gray-300 rounded mb-4">
-                            <table className="w-full border-collapse">
+                          <div className="border-2 border-purple-200 rounded-lg mb-4 overflow-hidden">
+                            <table className="w-full">
                               <thead>
-                                <tr className="bg-gray-100 border-b border-gray-300">
-                                  <th className="p-2.5 text-left text-sm font-bold">Ingredient Name</th>
-                                  <th className="p-2.5 text-left text-sm font-bold">Quantity</th>
-                                  <th className="p-2.5 text-left text-sm font-bold">Actions</th>
+                                <tr className="bg-purple-50 border-b-2 border-purple-200">
+                                  <th className="p-4 text-left text-sm font-bold text-gray-700">Ingredient Name</th>
+                                  <th className="p-4 text-left text-sm font-bold text-gray-700">Quantity</th>
+                                  <th className="p-4 text-left text-sm font-bold text-gray-700">Actions</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -957,22 +983,22 @@ function ManagerView() {
                                     ? editingIngredients[ingredient.ingredientid] 
                                     : ingredient.ingredientqty;
                                   return (
-                                    <tr key={ingredient.ingredientid} className="border-b border-gray-200">
-                                      <td className="p-2.5 text-sm">{ingredient.ingredientname}</td>
-                                      <td className="p-2.5">
+                                    <tr key={ingredient.ingredientid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
+                                      <td className="p-4 text-base font-medium text-gray-800">{ingredient.ingredientname}</td>
+                                      <td className="p-4">
                                         <input
                                           type="number"
                                           value={editedQty}
                                           onChange={(e) => handleIngredientQuantityChange(ingredient.ingredientid, parseInt(e.target.value) || 0)}
                                           min="0"
-                                          className="p-1 border border-gray-300 text-sm w-20"
+                                          className="p-2 border-2 border-gray-300 rounded-lg text-base w-24 focus:border-purple-500 focus:outline-none"
                                         />
                                       </td>
-                                      <td className="p-2.5">
+                                      <td className="p-4">
                                         <Button 
                                           onClick={() => handleRemoveIngredient(ingredient.ingredientid)} 
                                           size="sm" 
-                                          className="text-xs bg-red-500"
+                                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium"
                                         >
                                           Remove
                                         </Button>
@@ -986,13 +1012,13 @@ function ManagerView() {
                         )}
 
                         {/* Add New Ingredient */}
-                        <div className="border border-gray-300 rounded p-4 mb-4 bg-gray-50">
-                          <h4 className="text-sm font-bold mb-2">Add New Ingredient</h4>
-                          <div className="flex gap-2 items-center">
+                        <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
+                          <h4 className="text-base font-bold mb-3 text-gray-800">Add New Ingredient</h4>
+                          <div className="flex gap-3 items-center">
                             <select
                               value={newIngredientId}
                               onChange={(e) => setNewIngredientId(e.target.value ? Number(e.target.value) : '')}
-                              className="flex-1 p-2 border border-gray-300 text-sm bg-white"
+                              className="flex-1 p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
                             >
                               <option value="">Select ingredient...</option>
                               {availableInventory
@@ -1008,15 +1034,16 @@ function ManagerView() {
                               value={newIngredientQty}
                               onChange={(e) => setNewIngredientQty(parseInt(e.target.value) || 0)}
                               min="0"
-                              placeholder="Qty"
-                              className="p-2 border border-gray-300 text-sm w-24"
+                              placeholder="Quantity"
+                              className="p-3 border-2 border-gray-300 rounded-lg text-base w-32 focus:border-purple-500 focus:outline-none"
                             />
                           </div>
                         </div>
                       </>
                     )}
+                    </div>
                     
-                    <div className="mt-4 flex justify-end gap-2">
+                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex justify-end gap-3">
                       <Button 
                         onClick={() => {
                           setShowIngredientsModal(false);
@@ -1024,13 +1051,14 @@ function ManagerView() {
                           setNewIngredientId('');
                           setNewIngredientQty(0);
                         }}
-                        className="bg-gray-500"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
                       <Button 
                         onClick={handleSaveIngredients}
                         disabled={savingIngredients}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
                       >
                         {savingIngredients ? 'Saving...' : 'Save Changes'}
                       </Button>
@@ -1042,52 +1070,55 @@ function ManagerView() {
               {/* Create Menu Item Modal */}
               {showCreateMenuItemModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowCreateMenuItemModal(false)}>
-                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                    <h3 className="text-lg font-bold mb-4">Create New Menu Item</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Menu Item Name</label>
-                        <input
-                          type="text"
-                          value={newMenuItemName}
-                          onChange={(e) => setNewMenuItemName(e.target.value)}
-                          placeholder="Enter menu item name"
-                          className="w-full p-2 border border-gray-300 text-sm rounded"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Category</label>
-                        <select
-                          value={newMenuItemCategory}
-                          onChange={(e) => setNewMenuItemCategory(e.target.value)}
-                          className="w-full p-2 border border-gray-300 text-sm bg-white rounded"
-                        >
-                          <option value="">Select category...</option>
-                          {categories.map((category) => (
-                            <option key={category} value={category}>
-                              {category}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Price</label>
-                        <input
-                          type="number"
-                          value={newMenuItemPrice}
-                          onChange={(e) => setNewMenuItemPrice(parseFloat(e.target.value) || 0)}
-                          placeholder="0.00"
-                          min="0"
-                          step="0.01"
-                          className="w-full p-2 border border-gray-300 text-sm rounded"
-                        />
+                  <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-6">
+                      <h3 className="text-2xl font-bold text-white">Create New Menu Item</h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Menu Item Name</label>
+                          <input
+                            type="text"
+                            value={newMenuItemName}
+                            onChange={(e) => setNewMenuItemName(e.target.value)}
+                            placeholder="Enter menu item name"
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                          <select
+                            value={newMenuItemCategory}
+                            onChange={(e) => setNewMenuItemCategory(e.target.value)}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                          >
+                            <option value="">Select category...</option>
+                            {categories.map((category) => (
+                              <option key={category} value={category}>
+                                {category}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                          <input
+                            type="number"
+                            value={newMenuItemPrice}
+                            onChange={(e) => setNewMenuItemPrice(parseFloat(e.target.value) || 0)}
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex justify-end gap-3">
                       <Button 
                         onClick={() => {
                           setShowCreateMenuItemModal(false);
@@ -1095,11 +1126,14 @@ function ManagerView() {
                           setNewMenuItemCategory('');
                           setNewMenuItemPrice(0);
                         }}
-                        className="bg-gray-500"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
-                      <Button onClick={handleCreateMenuItem}>
+                      <Button 
+                        onClick={handleCreateMenuItem}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium"
+                      >
                         Create
                       </Button>
                     </div>
@@ -1110,61 +1144,68 @@ function ManagerView() {
               {/* Update Menu Item Modal */}
               {showUpdateMenuItemModal && editingMenuItem && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowUpdateMenuItemModal(false)}>
-                  <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                    <h3 className="text-lg font-bold mb-4">Edit Menu Item</h3>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Menu Item Name</label>
-                        <input
-                          type="text"
-                          value={editingMenuItem.menuitemname}
-                          onChange={(e) => setEditingMenuItem({ ...editingMenuItem, menuitemname: e.target.value })}
-                          placeholder="Enter menu item name"
-                          className="w-full p-2 border border-gray-300 text-sm rounded"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Category</label>
-                        <select
-                          value={editingMenuItem.drinkcategory}
-                          onChange={(e) => setEditingMenuItem({ ...editingMenuItem, drinkcategory: e.target.value })}
-                          className="w-full p-2 border border-gray-300 text-sm bg-white rounded"
-                        >
-                          {categories.map((category) => (
-                            <option key={category} value={category}>
-                              {category}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Price</label>
-                        <input
-                          type="number"
-                          value={editingMenuItem.price}
-                          onChange={(e) => setEditingMenuItem({ ...editingMenuItem, price: parseFloat(e.target.value) || 0 })}
-                          placeholder="0.00"
-                          min="0"
-                          step="0.01"
-                          className="w-full p-2 border border-gray-300 text-sm rounded"
-                        />
+                  <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-6">
+                      <h3 className="text-2xl font-bold text-white">Edit Menu Item</h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Menu Item Name</label>
+                          <input
+                            type="text"
+                            value={editingMenuItem.menuitemname}
+                            onChange={(e) => setEditingMenuItem({ ...editingMenuItem, menuitemname: e.target.value })}
+                            placeholder="Enter menu item name"
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                          <select
+                            value={editingMenuItem.drinkcategory}
+                            onChange={(e) => setEditingMenuItem({ ...editingMenuItem, drinkcategory: e.target.value })}
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                          >
+                            {categories.map((category) => (
+                              <option key={category} value={category}>
+                                {category}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                          <input
+                            type="number"
+                            value={editingMenuItem.price}
+                            onChange={(e) => setEditingMenuItem({ ...editingMenuItem, price: parseFloat(e.target.value) || 0 })}
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="mt-6 flex justify-end gap-2">
+                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex justify-end gap-3">
                       <Button 
                         onClick={() => {
                           setShowUpdateMenuItemModal(false);
                           setEditingMenuItem(null);
                         }}
-                        className="bg-gray-500"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
-                      <Button onClick={handleUpdateMenuItem} disabled={updatingMenuItem}>
+                      <Button 
+                        onClick={handleUpdateMenuItem} 
+                        disabled={updatingMenuItem}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
+                      >
                         {updatingMenuItem ? 'Updating...' : 'Update'}
                       </Button>
                     </div>
