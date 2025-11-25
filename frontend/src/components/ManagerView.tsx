@@ -1217,15 +1217,15 @@ function ManagerView() {
 
           {/* Analytics Tab */}
           {activeTab === 'analytics' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-normal m-0">Analytics & Reports</h2>
-                <div className="flex gap-2 items-center">
-                  <label className="text-sm font-medium">Select Report:</label>
+            <div className="max-w-7xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-800">Analytics & Reports</h2>
+                <div className="flex gap-3 items-center">
+                  <label className="text-sm font-medium text-gray-700">Select Report:</label>
                   <select
                     value={selectedReport}
                     onChange={(e) => setSelectedReport(e.target.value as any)}
-                    className="p-2 border border-gray-300 text-sm bg-white rounded min-w-[200px]"
+                    className="p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none transition-colors min-w-[200px]"
                   >
                     <option value="overview">Overview</option>
                     <option value="product-usage">Product Usage Chart</option>
@@ -1237,34 +1237,39 @@ function ManagerView() {
               </div>
 
               {/* Report Content */}
-              <div className="border border-gray-300 p-4 bg-white rounded">
+              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
                 {selectedReport === 'overview' && (
-                  <>
+                  <div className="p-6">
                     {/* Sales Data */}
-                    <div className="border border-gray-300 p-4 mb-5 bg-gray-50">
-                      <h3 className="text-base font-normal mt-0 mb-2.5">Total Sales</h3>
-                      <div className="flex gap-2.5 items-center mb-2.5">
+                    <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6 shadow-sm">
+                      <h3 className="text-xl font-semibold mb-4 text-gray-800">Total Sales</h3>
+                      <div className="flex gap-3 items-center mb-4 flex-wrap">
                         <input
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="p-2 border border-gray-300 text-sm"
+                          className="p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
                         />
-                        <span>to</span>
+                        <span className="text-gray-600 font-medium">to</span>
                         <input
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="p-2 border border-gray-300 text-sm"
+                          className="p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
                         />
-                        <Button onClick={handleSalesDateChange}>
+                        <Button 
+                          onClick={handleSalesDateChange}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium"
+                        >
                           Update
                         </Button>
                       </div>
                       {salesData && (
-                        <div className="text-2xl font-bold">
-                          ${salesData.total.toFixed(2)}
-                          <div className="text-xs font-normal text-gray-600 mt-1.5">
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border-2 border-purple-200">
+                          <div className="text-4xl font-bold text-purple-600">
+                            ${salesData.total.toFixed(2)}
+                          </div>
+                          <div className="text-sm font-medium text-gray-600 mt-2">
                             {salesData.period}
                           </div>
                         </div>
@@ -1272,89 +1277,112 @@ function ManagerView() {
                     </div>
 
                     {/* Product Usage */}
-                    <div className="border border-gray-300 p-4">
-                      <h3 className="text-base font-normal mt-0 mb-4">Product Usage (Last 30 Days)</h3>
-                      
-                      {/* Filter Controls */}
-                      <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
-                        <div className="flex gap-4 items-center flex-wrap">
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium">Filter by:</label>
-                            <select
-                              value={productUsageFilterType}
-                              onChange={(e) => {
-                                setProductUsageFilterType(e.target.value as 'category' | 'drink');
-                                setProductUsageFilter('all');
-                              }}
-                              className="p-2 border border-gray-300 text-sm bg-white rounded"
-                            >
-                              <option value="category">Category</option>
-                              <option value="drink">Drink Name</option>
-                            </select>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium">
-                              {productUsageFilterType === 'category' ? 'Select Category:' : 'Enter Drink Name:'}
-                            </label>
-                            {productUsageFilterType === 'category' ? (
-                              <select
-                                value={productUsageFilter}
-                                onChange={(e) => setProductUsageFilter(e.target.value)}
-                                className="p-2 border border-gray-300 text-sm bg-white rounded min-w-[200px]"
-                              >
-                                <option value="all">All</option>
-                                {categories.map((category) => (
-                                  <option key={category} value={category}>
-                                    {category}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              <input
-                                type="text"
-                                value={productUsageFilter === 'all' ? '' : productUsageFilter}
-                                onChange={(e) => setProductUsageFilter(e.target.value || 'all')}
-                                placeholder="Type drink name..."
-                                className="p-2 border border-gray-300 text-sm rounded min-w-[200px]"
-                                list="drink-suggestions"
-                              />
-                            )}
-                            {productUsageFilterType === 'drink' && (
-                              <datalist id="drink-suggestions">
-                                {Object.keys(productUsage).sort().map((drinkName) => (
-                                  <option key={drinkName} value={drinkName} />
-                                ))}
-                              </datalist>
-                            )}
-                          </div>
-                        </div>
+                    <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4">
+                        <h3 className="text-xl font-bold text-white">Product Usage (Last 30 Days)</h3>
                       </div>
-
-                      {Object.keys(productUsage).length === 0 ? (
-                        <div className="text-gray-500 p-5 text-center">No product usage data available</div>
-                      ) : Object.keys(filteredProductUsage).length === 0 ? (
-                        <div className="text-gray-500 p-5 text-center">No products found for selected filter</div>
-                      ) : (
-                        <div>
-                          {Object.entries(filteredProductUsage)
-                            .sort(([, a], [, b]) => b - a)
-                            .map(([name, count]) => (
-                              <div key={name} className="p-2.5 border-b border-gray-200 flex justify-between">
-                                <span className="text-sm">{name}</span>
-                                <span className="text-sm font-bold">{count} sold</span>
-                              </div>
-                            ))}
+                      <div className="p-6">
+                        {/* Filter Controls */}
+                        <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                          <div className="flex gap-4 items-center flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <label className="text-sm font-medium text-gray-700">Filter by:</label>
+                              <select
+                                value={productUsageFilterType}
+                                onChange={(e) => {
+                                  setProductUsageFilterType(e.target.value as 'category' | 'drink');
+                                  setProductUsageFilter('all');
+                                }}
+                                className="p-2 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                              >
+                                <option value="category">Category</option>
+                                <option value="drink">Drink Name</option>
+                              </select>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <label className="text-sm font-medium text-gray-700">
+                                {productUsageFilterType === 'category' ? 'Select Category:' : 'Enter Drink Name:'}
+                              </label>
+                              {productUsageFilterType === 'category' ? (
+                                <select
+                                  value={productUsageFilter}
+                                  onChange={(e) => setProductUsageFilter(e.target.value)}
+                                  className="p-2 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none min-w-[200px]"
+                                >
+                                  <option value="all">All</option>
+                                  {categories.map((category) => (
+                                    <option key={category} value={category}>
+                                      {category}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type="text"
+                                  value={productUsageFilter === 'all' ? '' : productUsageFilter}
+                                  onChange={(e) => setProductUsageFilter(e.target.value || 'all')}
+                                  placeholder="Type drink name..."
+                                  className="p-2 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none min-w-[200px]"
+                                  list="drink-suggestions"
+                                />
+                              )}
+                              {productUsageFilterType === 'drink' && (
+                                <datalist id="drink-suggestions">
+                                  {Object.keys(productUsage).sort().map((drinkName) => (
+                                    <option key={drinkName} value={drinkName} />
+                                  ))}
+                                </datalist>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      )}
+
+                        {Object.keys(productUsage).length === 0 ? (
+                          <div className="text-gray-400 p-8 text-center">
+                            <div className="text-lg">No product usage data available</div>
+                          </div>
+                        ) : Object.keys(filteredProductUsage).length === 0 ? (
+                          <div className="text-gray-400 p-8 text-center">
+                            <div className="text-lg">No products found for selected filter</div>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {Object.entries(filteredProductUsage)
+                              .sort(([, a], [, b]) => b - a)
+                              .map(([name, count]) => (
+                                <div key={name} className="p-4 border-2 border-gray-200 rounded-lg flex justify-between items-center hover:bg-purple-50 transition-colors">
+                                  <span className="text-base font-medium text-gray-800">{name}</span>
+                                  <span className="text-base font-bold text-purple-600">{count} sold</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </>
+                  </div>
                 )}
 
-                {selectedReport === 'product-usage' && <ProductUsageChart />}
-                {selectedReport === 'x-report' && <XReport />}
-                {selectedReport === 'z-report' && <ZReport />}
-                {selectedReport === 'sales-report' && <SalesReport />}
+                {selectedReport === 'product-usage' && (
+                  <div className="p-6">
+                    <ProductUsageChart />
+                  </div>
+                )}
+                {selectedReport === 'x-report' && (
+                  <div className="p-6">
+                    <XReport />
+                  </div>
+                )}
+                {selectedReport === 'z-report' && (
+                  <div className="p-6">
+                    <ZReport />
+                  </div>
+                )}
+                {selectedReport === 'sales-report' && (
+                  <div className="p-6">
+                    <SalesReport />
+                  </div>
+                )}
               </div>
             </div>
           )}
