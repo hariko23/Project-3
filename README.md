@@ -282,10 +282,11 @@ The built files will be in `frontend/dist/`
 - Change `PORT` in backend `.env` if port 3000 is in use
 - Update `VITE_API_BASE_URL` in frontend `.env` to match
 
-## License
-
-[Add your license here]
 
 ## Contributors
 
-[Add contributors here]
+Harrison Ko
+Thomas Docog
+Nitin Achuta
+Aryan Gandhi
+Theresa Tran

@@ -102,6 +102,15 @@ function MenuBoardView() {
                         SEASONAL
                       </span>
                     </div>
+                    {item.image_url && (
+                      <div className="mb-3">
+                        <img 
+                          src={item.image_url} 
+                          alt={item.menuitemname}
+                          className="w-full h-40 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
                     <div className="flex flex-col">
                       <span className="text-xl font-bold text-foreground mb-1">
                         {item.menuitemname}
@@ -127,6 +136,15 @@ function MenuBoardView() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((item) => (
                 <div key={item.menuitemid} className="p-4 border border-border rounded hover:shadow-md transition-shadow bg-card">
+                  {item.image_url && (
+                    <div className="mb-3">
+                      <img 
+                        src={item.image_url} 
+                        alt={item.menuitemname}
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-medium text-foreground">{item.menuitemname}</span>
                     <span className="text-lg font-bold text-foreground">${item.price.toFixed(2)}</span>
