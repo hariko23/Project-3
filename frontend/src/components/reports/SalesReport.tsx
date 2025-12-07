@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import Button from '../ui/Button';
 import API_BASE_URL from '../../api/config';
 
@@ -40,7 +41,7 @@ function SalesReport() {
       }
     } catch (err) {
       console.error('Error generating sales report:', err);
-      alert('Failed to generate sales report');
+      toast.error('Failed to generate sales report');
     } finally {
       setLoading(false);
     }

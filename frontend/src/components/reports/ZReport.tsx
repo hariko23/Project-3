@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import Button from '../ui/Button';
 import API_BASE_URL from '../../api/config';
 
@@ -34,7 +35,7 @@ function ZReport() {
 
   const generateReport = async () => {
     if (!canRunToday) {
-      alert('Z-Report has already been run today. It can only be run once per day.');
+      toast.warning('Z-Report has already been run today. It can only be run once per day.');
       return;
     }
 
@@ -57,7 +58,7 @@ function ZReport() {
       }
     } catch (err) {
       console.error('Error generating Z-Report:', err);
-      alert('Failed to generate Z-Report');
+      toast.error('Failed to generate Z-Report');
     } finally {
       setLoading(false);
     }

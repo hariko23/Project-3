@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import Button from '../ui/Button';
 import API_BASE_URL from '../../api/config';
 
@@ -33,7 +34,7 @@ function XReport() {
       }
     } catch (err) {
       console.error('Error generating X-Report:', err);
-      alert('Failed to generate X-Report');
+      toast.error('Failed to generate X-Report');
     } finally {
       setLoading(false);
     }

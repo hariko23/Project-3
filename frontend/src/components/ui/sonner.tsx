@@ -8,15 +8,17 @@ import {
   TriangleAlertIcon,
 } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
-import { Toaster as Sonner, ToasterProps } from "sonner"
+import { Toaster as Sonner } from "sonner"
+import type { ComponentProps } from "react"
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const Toaster = ({ ...props }: ComponentProps<typeof Sonner>) => {
   const { theme } = useTheme()
 
   return (
     <Sonner
       theme={theme === 'dark' ? 'dark' : 'light'}
       className="toaster group"
+      richColors
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,

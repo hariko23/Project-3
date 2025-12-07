@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
 import { createOrder } from '../api/orderApi';
@@ -261,7 +262,7 @@ function CustomerKioskLayout() {
         error: err,
         apiUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api'
       });
-      alert(`Failed to load menu items: ${errorMessage}\n\nCheck console for details.`);
+      toast.error(`Failed to load menu items: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -414,7 +415,7 @@ function CustomerKioskLayout() {
   const submitOrder = async () => {
     resetIdleTimer(); // Reset idle timer on interaction
     if (cart.length === 0) {
-      alert('Your cart is empty');
+      toast.warning('Your cart is empty');
       return;
     }
 
@@ -464,9 +465,9 @@ function CustomerKioskLayout() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       if (errorMessage.includes('Insufficient inventory')) {
-        alert('Sorry, we cannot fulfill this order due to insufficient inventory. Please try again later.');
+        toast.error('Sorry, we cannot fulfill this order due to insufficient inventory. Please try again later.');
       } else {
-        alert(`Failed to submit order: ${errorMessage}`);
+        toast.error(`Failed to submit order: ${errorMessage}`);
       }
       console.error('Error submitting order:', error);
     }

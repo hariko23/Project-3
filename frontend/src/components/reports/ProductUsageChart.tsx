@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import Button from '../ui/Button';
 import API_BASE_URL from '../../api/config';
 
@@ -35,7 +36,7 @@ function ProductUsageChart() {
       }
     } catch (err) {
       console.error('Error fetching product usage:', err);
-      alert('Failed to fetch product usage data');
+      toast.error('Failed to fetch product usage data');
     } finally {
       setLoading(false);
     }
