@@ -689,7 +689,7 @@ function ManagerView() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-background dark:from-purple-950 dark:via-pink-950 dark:to-background min-h-screen">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Header */}
       <div className="bg-card border-b-2 border-purple-200 dark:border-purple-800 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
@@ -808,7 +808,7 @@ function ManagerView() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-purple-50 border-b-2 border-purple-200">
+                      <tr className="bg-purple-50 dark:bg-gray-800 border-b-2 border-purple-200 dark:border-gray-700">
                         <th className="p-4 text-left text-sm font-bold text-foreground">ID</th>
                         <th className="p-4 text-left text-sm font-bold text-foreground">Item Name</th>
                         <th className="p-4 text-left text-sm font-bold text-foreground">Quantity</th>
@@ -937,8 +937,8 @@ function ManagerView() {
                 </div>
                 <div className="max-h-[500px] overflow-y-auto">
                   <table className="w-full">
-                    <thead className="sticky top-0 bg-purple-50 z-10">
-                      <tr className="border-b-2 border-purple-200">
+                    <thead className="sticky top-0 bg-purple-50 dark:bg-gray-800 z-10">
+                      <tr className="border-b-2 border-purple-200 dark:border-gray-700">
                         <th className="p-4 text-left text-sm font-bold text-foreground">ID</th>
                         <th className="p-4 text-left text-sm font-bold text-foreground">Drink Name</th>
                         <th className="p-4 text-left text-sm font-bold text-foreground">Category</th>
@@ -1013,7 +1013,7 @@ function ManagerView() {
                           <div className="border-2 border-purple-200 rounded-lg mb-4 overflow-hidden">
                             <table className="w-full">
                               <thead>
-                                <tr className="bg-purple-50 border-b-2 border-purple-200">
+                                <tr className="bg-purple-50 dark:bg-gray-800 border-b-2 border-purple-200 dark:border-gray-700">
                                   <th className="p-4 text-left text-sm font-bold text-foreground">Ingredient Name</th>
                                   <th className="p-4 text-left text-sm font-bold text-foreground">Quantity</th>
                                   <th className="p-4 text-left text-sm font-bold text-foreground">Actions</th>
@@ -1054,7 +1054,7 @@ function ManagerView() {
                         )}
 
                         {/* Add New Ingredient */}
-                        <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
+                        <div className="border-2 border-purple-200 dark:border-gray-700 rounded-lg p-4 bg-purple-50 dark:bg-gray-800">
                           <h4 className="text-base font-bold mb-3 text-foreground">Add New Ingredient</h4>
                           <div className="flex gap-3 items-center">
                             <select
@@ -1368,14 +1368,14 @@ function ManagerView() {
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          className="p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg text-base bg-background dark:bg-gray-800 text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                         />
-                        <span className="text-gray-600 font-medium">to</span>
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">to</span>
                         <input
                           type="date"
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
-                          className="p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                          className="p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg text-base bg-background dark:bg-gray-800 text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                         />
                         <Button 
                           onClick={handleSalesDateChange}
@@ -1403,7 +1403,7 @@ function ManagerView() {
                       </div>
                       <div className="p-6">
                         {/* Filter Controls */}
-                        <div className="mb-6 p-4 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                        <div className="mb-6 p-4 bg-purple-50 dark:bg-gray-800 border-2 border-purple-200 dark:border-gray-700 rounded-lg">
                           <div className="flex gap-4 items-center flex-wrap">
                             <div className="flex items-center gap-2">
                               <label className="text-sm font-medium text-gray-700">Filter by:</label>
@@ -1471,9 +1471,9 @@ function ManagerView() {
                             {Object.entries(filteredProductUsage)
                               .sort(([, a], [, b]) => b - a)
                               .map(([name, count]) => (
-                                <div key={name} className="p-4 border-2 border-gray-200 rounded-lg flex justify-between items-center hover:bg-purple-50 transition-colors">
-                                  <span className="text-base font-medium text-gray-800">{name}</span>
-                                  <span className="text-base font-bold text-purple-600">{count} sold</span>
+                                <div key={name} className="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg flex justify-between items-center hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors">
+                                  <span className="text-base font-medium text-gray-800 dark:text-foreground">{name}</span>
+                                  <span className="text-base font-bold text-purple-600 dark:text-purple-400">{count} sold</span>
                                 </div>
                               ))}
                           </div>
@@ -1544,15 +1544,15 @@ function ManagerView() {
                             type="date"
                             value={orderFilters.dateFrom}
                             onChange={(e) => setOrderFilters({...orderFilters, dateFrom: e.target.value})}
-                            className="p-3 border-2 border-gray-300 rounded-lg text-base flex-1 focus:border-purple-500 focus:outline-none"
+                            className="p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg text-base flex-1 bg-background dark:bg-gray-800 text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                             placeholder="From"
                           />
-                          <span className="text-sm font-medium text-gray-600">to</span>
+                          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">to</span>
                           <input
                             type="date"
                             value={orderFilters.dateTo}
                             onChange={(e) => setOrderFilters({...orderFilters, dateTo: e.target.value})}
-                            className="p-3 border-2 border-gray-300 rounded-lg text-base flex-1 focus:border-purple-500 focus:outline-none"
+                            className="p-3 border-2 border-gray-300 dark:border-gray-700 rounded-lg text-base flex-1 bg-background dark:bg-gray-800 text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                             placeholder="To"
                           />
                         </div>
@@ -1661,12 +1661,12 @@ function ManagerView() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-purple-50 border-b-2 border-purple-200">
-                        <th className="p-4 text-left text-sm font-bold text-gray-700 w-12"></th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Order ID</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Date</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Total</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Status</th>
+                      <tr className="bg-purple-50 dark:bg-gray-800 border-b-2 border-purple-200 dark:border-gray-700">
+                        <th className="p-4 text-left text-sm font-bold text-gray-700 dark:text-foreground w-12"></th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700 dark:text-foreground">Order ID</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700 dark:text-foreground">Date</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700 dark:text-foreground">Total</th>
+                        <th className="p-4 text-left text-sm font-bold text-gray-700 dark:text-foreground">Status</th>
                       </tr>
                     </thead>
                   <tbody>
@@ -1681,7 +1681,7 @@ function ManagerView() {
                     ) : (
                       filteredOrders.map((order) => (
                         <>
-                          <tr key={order.orderid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
+                          <tr key={order.orderid} className="border-b border-gray-200 dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors">
                             <td className="p-4">
                               <button
                                 onClick={() => toggleOrderDetails(order.orderid)}
@@ -1718,7 +1718,7 @@ function ManagerView() {
                             </td>
                           </tr>
                           {expandedOrderId === order.orderid && (
-                            <tr key={`${order.orderid}-details`} className="bg-purple-50">
+                            <tr key={`${order.orderid}-details`} className="bg-purple-50 dark:bg-gray-800">
                               <td colSpan={5} className="p-6">
                                 {loadingOrderItems === order.orderid ? (
                                   <div className="text-center text-base text-gray-500 py-6">
@@ -1732,21 +1732,21 @@ function ManagerView() {
                                     <div className="overflow-x-auto">
                                       <table className="w-full">
                                       <thead>
-                                        <tr className="bg-purple-50 border-b-2 border-purple-200">
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Drink Name</th>
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Size</th>
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Toppings</th>
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Quantity</th>
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Price</th>
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700">Subtotal</th>
+                                        <tr className="bg-purple-50 dark:bg-gray-800 border-b-2 border-purple-200 dark:border-gray-700">
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Drink Name</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Size</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Toppings</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Quantity</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Price</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Subtotal</th>
                                         </tr>
                                       </thead>
                                       <tbody>
                                         {orderItems[order.orderid].map((item) => {
                                           const toppings = item.toppings ? item.toppings.split(',').filter(t => t.trim()) : [];
                                           return (
-                                          <tr key={item.orderitemid} className="border-b border-gray-100 last:border-0 hover:bg-purple-50 transition-colors">
-                                            <td className="p-3 text-sm font-medium text-gray-800">{item.menuitemname}</td>
+                                          <tr key={item.orderitemid} className="border-b border-gray-100 dark:border-gray-700 last:border-0 hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors">
+                                            <td className="p-3 text-sm font-medium text-gray-800 dark:text-foreground">{item.menuitemname}</td>
                                             <td className="p-3 text-sm">
                                               <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium">
                                                 {item.size}
