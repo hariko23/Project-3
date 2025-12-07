@@ -9,6 +9,7 @@ import AccessibilityButton from './components/AccessibilityButton';
 import { useAuth, UserButton } from '@clerk/clerk-react';
 import { useTheme } from './contexts/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
+import { Toaster } from './components/ui/sonner';
 
 
 /**
@@ -153,6 +154,7 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         <AccessibilityButton />
+        <Toaster />
       </div>
     </Router>
   );

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import Button from '../ui/Button';
 import API_BASE_URL from '../../api/config';
 
@@ -32,13 +33,13 @@ function AddMenuItem() {
 
   const handleSubmit = async () => {
     if (!menuItemName || !drinkCategory || !price) {
-      alert('Please fill in all required fields');
+      toast.warning('Please fill in all required fields');
       return;
     }
 
     const numPrice = parseFloat(price);
     if (isNaN(numPrice) || numPrice <= 0) {
-      alert('Please enter a valid price');
+      toast.warning('Please enter a valid price');
       return;
     }
 
@@ -66,7 +67,7 @@ function AddMenuItem() {
         console.log('Ingredients to add:', validIngredients);
       }
 
-      alert(`Menu item "${menuItemName}" added successfully!`);
+      toast.success(`Menu item "${menuItemName}" added successfully!`);
       
       // Reset form
       setMenuItemName('');
@@ -76,7 +77,7 @@ function AddMenuItem() {
 
     } catch (err) {
       console.error('Error adding menu item:', err);
-      alert(`Failed to add menu item: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      toast.error(`Failed to add menu item: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

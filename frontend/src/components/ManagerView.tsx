@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { getAllInventory, addInventoryItem, updateInventoryQuantity } from '../api/inventoryApi';
 import type { InventoryItem } from '../api/inventoryApi';
 import { getAllMenuItems, getMenuItemIngredients, updateMenuItemIngredient, addMenuItemIngredient, removeMenuItemIngredient, addMenuItem, updateMenuItem, deleteMenuItem } from '../api/menuApi';
@@ -197,7 +198,7 @@ function ManagerView() {
       }
     } catch (err) {
       console.error('Error loading data:', err);
-      alert('Failed to load data');
+      toast.error('Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -248,7 +249,7 @@ function ManagerView() {
    */
   const handleAddInventory = async () => {
     if (!newItemName.trim() || newItemQuantity < 0) {
-      alert('Please enter a valid item name and quantity');
+      toast.warning('Please enter a valid item name and quantity');
       return;
     }
 
@@ -260,10 +261,10 @@ function ManagerView() {
       setNewItemName('');
       setNewItemQuantity(0);
       await loadInventory();
-      alert('Inventory item added successfully');
+      toast.success('Inventory item added successfully');
     } catch (err) {
       console.error('Error adding inventory:', err);
-      alert('Failed to add inventory item');
+      toast.error('Failed to add inventory item');
     }
   };
 
@@ -273,7 +274,7 @@ function ManagerView() {
    */
   const handleUpdateQuantity = async (id: number) => {
     if (editQuantity < 0) {
-      alert('Quantity cannot be negative');
+      toast.warning('Quantity cannot be negative');
       return;
     }
 
@@ -281,10 +282,10 @@ function ManagerView() {
       await updateInventoryQuantity(id, editQuantity);
       setEditingItem(null);
       await loadInventory();
-      alert('Inventory updated successfully');
+      toast.success('Inventory updated successfully');
     } catch (err) {
       console.error('Error updating inventory:', err);
-      alert('Failed to update inventory');
+      toast.error('Failed to update inventory');
     }
   };
 
@@ -317,7 +318,7 @@ function ManagerView() {
         setSalesData({ total: sales.totalSales, period: `${startDate} to ${endDate}` });
       } catch (err) {
         console.error('Error loading sales:', err);
-        alert('Failed to load sales data');
+        toast.error('Failed to load sales data');
       }
     }
   };
@@ -411,7 +412,7 @@ function ManagerView() {
         }));
       } catch (err) {
         console.error('Error loading order items:', err);
-        alert('Failed to load order items');
+        toast.error('Failed to load order items');
       } finally {
         setLoadingOrderItems(null);
       }
@@ -451,7 +452,7 @@ function ManagerView() {
     } catch (err) {
       console.error('Error updating order status:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      alert(`Failed to update order status: ${errorMessage}`);
+      toast.error(`Failed to update order status: ${errorMessage}`);
     }
   };
 
@@ -475,7 +476,7 @@ function ManagerView() {
       setAvailableInventory(inventory);
     } catch (err) {
       console.error('Error loading ingredients:', err);
-      alert('Failed to load ingredients');
+      toast.error('Failed to load ingredients');
       setMenuItemIngredients([]);
       setAvailableInventory([]);
     } finally {
@@ -528,10 +529,10 @@ function ManagerView() {
       setEditingIngredients({});
       setNewIngredientId('');
       setNewIngredientQty(0);
-      alert('Ingredients updated successfully');
+      toast.success('Ingredients updated successfully');
     } catch (err) {
       console.error('Error saving ingredients:', err);
-      alert('Failed to save ingredients');
+      toast.error('Failed to save ingredients');
     } finally {
       setSavingIngredients(false);
     }
@@ -558,10 +559,10 @@ function ManagerView() {
         delete updated[ingredientId];
         return updated;
       });
-      alert('Ingredient removed successfully');
+      toast.success('Ingredient removed successfully');
     } catch (err) {
       console.error('Error removing ingredient:', err);
-      alert('Failed to remove ingredient');
+      toast.error('Failed to remove ingredient');
     }
   };
 
@@ -570,7 +571,7 @@ function ManagerView() {
    */
   const handleCreateMenuItem = async () => {
     if (!newMenuItemName.trim() || !newMenuItemCategory.trim() || newMenuItemPrice <= 0) {
-      alert('Please fill in all fields with valid values');
+      toast.warning('Please fill in all fields with valid values');
       return;
     }
 
@@ -581,10 +582,10 @@ function ManagerView() {
       setNewMenuItemCategory('');
       setNewMenuItemPrice(0);
       await loadMenuItems();
-      alert('Menu item created successfully');
+      toast.success('Menu item created successfully');
     } catch (err) {
       console.error('Error creating menu item:', err);
-      alert('Failed to create menu item');
+      toast.error('Failed to create menu item');
     }
   };
 
@@ -595,7 +596,7 @@ function ManagerView() {
     if (!editingMenuItem) return;
 
     if (!editingMenuItem.menuitemname.trim() || !editingMenuItem.drinkcategory.trim() || editingMenuItem.price <= 0) {
-      alert('Please fill in all fields with valid values');
+      toast.warning('Please fill in all fields with valid values');
       return;
     }
 
@@ -609,10 +610,10 @@ function ManagerView() {
       setShowUpdateMenuItemModal(false);
       setEditingMenuItem(null);
       await loadMenuItems();
-      alert('Menu item updated successfully');
+      toast.success('Menu item updated successfully');
     } catch (err) {
       console.error('Error updating menu item:', err);
-      alert('Failed to update menu item');
+      toast.error('Failed to update menu item');
     } finally {
       setUpdatingMenuItem(false);
     }
@@ -630,10 +631,10 @@ function ManagerView() {
     try {
       await deleteMenuItem(menuItem.menuitemid);
       await loadMenuItems();
-      alert('Menu item deleted successfully');
+      toast.success('Menu item deleted successfully');
     } catch (err) {
       console.error('Error deleting menu item:', err);
-      alert('Failed to delete menu item');
+      toast.error('Failed to delete menu item');
     }
   };
 

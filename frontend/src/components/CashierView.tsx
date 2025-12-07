@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
 import { createOrder, getAllOrders, getOrderItems, markOrderItemComplete } from '../api/orderApi';
@@ -234,7 +235,7 @@ function CashierView() {
         } catch (err) {
           console.error('Error loading order items:', err);
           const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-          alert(`Failed to load order items: ${errorMessage}`);
+          toast.error(`Failed to load order items: ${errorMessage}`);
           // Set empty array so it doesn't keep trying
           setOrderItemsMap(prev => ({ ...prev, [orderId]: [] }));
         } finally {
@@ -270,7 +271,7 @@ function CashierView() {
       await loadIncompleteOrders();
     } catch (err) {
       console.error('Error marking order item complete:', err);
-      alert('Failed to update order item status');
+      toast.error('Failed to update order item status');
     }
   };
 
@@ -369,7 +370,7 @@ function CashierView() {
    */
   const submitOrder = async () => {
     if (currentOrder.length === 0) {
-      alert('Order is empty');
+      toast.warning('Order is empty');
       return;
     }
 
@@ -422,9 +423,9 @@ function CashierView() {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       // Handle inventory errors with user-friendly message
       if (errorMessage.includes('Insufficient inventory')) {
-        alert('Cannot fulfill this order due to insufficient inventory.\nPlease check stock levels and try again.');
+        toast.error('Cannot fulfill this order due to insufficient inventory. Please check stock levels and try again.');
       } else {
-        alert(`Failed to submit order: ${errorMessage}`);
+        toast.error(`Failed to submit order: ${errorMessage}`);
       }
       console.error('Error submitting order:', error);
     }
