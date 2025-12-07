@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { getAllInventory, addInventoryItem, updateInventoryQuantity } from '../api/inventoryApi';
 import type { InventoryItem } from '../api/inventoryApi';
-import { getAllMenuItems, getMenuItemIngredients, updateMenuItemIngredient, addMenuItemIngredient, removeMenuItemIngredient, addMenuItem, updateMenuItem, deleteMenuItem } from '../api/menuApi';
+import { getAllMenuItems, getMenuItemIngredients, updateMenuItemIngredient, addMenuItemIngredient, removeMenuItemIngredient, addMenuItem, updateMenuItem, deleteMenuItem, uploadImage } from '../api/menuApi';
 import type { MenuItem, MenuItemIngredient } from '../api/menuApi';
 import { getProductUsageData, getTotalSales } from '../api/analyticsApi';
 import { getAllOrders, getOrderItems } from '../api/orderApi';
@@ -99,6 +99,13 @@ function ManagerView() {
   const [newMenuItemCategory, setNewMenuItemCategory] = useState('');
   const [newMenuItemPrice, setNewMenuItemPrice] = useState<number>(0);
   const [updatingMenuItem, setUpdatingMenuItem] = useState(false);
+  
+  // Image upload state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [editingImageFile, setEditingImageFile] = useState<File | null>(null);
+  const [editingImagePreview, setEditingImagePreview] = useState<string | null>(null);
   
   // Date range for sales
   const [startDate, setStartDate] = useState(() => {
@@ -575,12 +582,28 @@ function ManagerView() {
       return;
     }
 
+    let imageUrl = '';
+    if (imageFile) {
+      setUploadingImage(true);
+      try {
+        imageUrl = await uploadImage(imageFile);
+      } catch (err) {
+        console.error('Error uploading image:', err);
+        toast.error('Failed to upload image. Please try again.');
+        setUploadingImage(false);
+        return;
+      }
+      setUploadingImage(false);
+    }
+
     try {
-      await addMenuItem(newMenuItemCategory, newMenuItemName.trim(), newMenuItemPrice);
+      await addMenuItem(newMenuItemCategory, newMenuItemName.trim(), newMenuItemPrice, imageUrl || undefined);
       setShowCreateMenuItemModal(false);
       setNewMenuItemName('');
       setNewMenuItemCategory('');
       setNewMenuItemPrice(0);
+      setImageFile(null);
+      setImagePreview(null);
       await loadMenuItems();
       toast.success('Menu item created successfully');
     } catch (err) {
@@ -600,15 +623,31 @@ function ManagerView() {
       return;
     }
 
+    let imageUrl = editingMenuItem.image_url;
+    if (editingImageFile) {
+      setUpdatingMenuItem(true);
+      try {
+        imageUrl = await uploadImage(editingImageFile);
+      } catch (err) {
+        console.error('Error uploading image:', err);
+        toast.error('Failed to upload image. Please try again.');
+        setUpdatingMenuItem(false);
+        return;
+      }
+    }
+
     setUpdatingMenuItem(true);
     try {
       await updateMenuItem(editingMenuItem.menuitemid, {
         menuitemname: editingMenuItem.menuitemname.trim(),
         drinkcategory: editingMenuItem.drinkcategory,
-        price: editingMenuItem.price
+        price: editingMenuItem.price,
+        image_url: imageUrl || undefined
       });
       setShowUpdateMenuItemModal(false);
       setEditingMenuItem(null);
+      setEditingImageFile(null);
+      setEditingImagePreview(null);
       await loadMenuItems();
       toast.success('Menu item updated successfully');
     } catch (err) {
@@ -644,6 +683,8 @@ function ManagerView() {
    */
   const handleEditMenuItem = (menuItem: MenuItem) => {
     setEditingMenuItem({ ...menuItem });
+    setEditingImageFile(null);
+    setEditingImagePreview(null);
     setShowUpdateMenuItemModal(true);
   };
 
@@ -1116,6 +1157,37 @@ function ManagerView() {
                             className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           />
                         </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Menu Item Image
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setImageFile(file);
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setImagePreview(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
+                          />
+                          {imagePreview && (
+                            <div className="mt-2">
+                              <img 
+                                src={imagePreview} 
+                                alt="Preview" 
+                                className="w-32 h-32 object-cover rounded-lg border-2 border-border"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -1126,6 +1198,8 @@ function ManagerView() {
                           setNewMenuItemName('');
                           setNewMenuItemCategory('');
                           setNewMenuItemPrice(0);
+                          setImageFile(null);
+                          setImagePreview(null);
                         }}
                         className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >
@@ -1133,9 +1207,10 @@ function ManagerView() {
                       </Button>
                       <Button 
                         onClick={handleCreateMenuItem}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium"
+                        disabled={uploadingImage}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium disabled:opacity-50"
                       >
-                        Create
+                        {uploadingImage ? 'Uploading...' : 'Create'}
                       </Button>
                     </div>
                   </div>
@@ -1189,6 +1264,48 @@ function ManagerView() {
                             className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           />
                         </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-foreground mb-2">
+                            Menu Item Image
+                          </label>
+                          {editingMenuItem.image_url && !editingImagePreview && (
+                            <div className="mb-2">
+                              <p className="text-sm text-muted-foreground mb-1">Current Image:</p>
+                              <img 
+                                src={editingMenuItem.image_url} 
+                                alt="Current" 
+                                className="w-32 h-32 object-cover rounded-lg border-2 border-border"
+                              />
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setEditingImageFile(file);
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setEditingImagePreview(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
+                          />
+                          {editingImagePreview && (
+                            <div className="mt-2">
+                              <p className="text-sm text-muted-foreground mb-1">New Image Preview:</p>
+                              <img 
+                                src={editingImagePreview} 
+                                alt="Preview" 
+                                className="w-32 h-32 object-cover rounded-lg border-2 border-border"
+                              />
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -1197,6 +1314,8 @@ function ManagerView() {
                         onClick={() => {
                           setShowUpdateMenuItemModal(false);
                           setEditingMenuItem(null);
+                          setEditingImageFile(null);
+                          setEditingImagePreview(null);
                         }}
                         className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >

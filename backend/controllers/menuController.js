@@ -3,11 +3,11 @@ const pool = require('../config/database');
 /**
  * Get all menu items
  * @route GET /api/menu
- * @returns {Array} Array of menu items with menuitemid, drinkcategory, menuitemname, and price
+ * @returns {Array} Array of menu items with menuitemid, drinkcategory, menuitemname, price, and image_url
  */
 const getAllMenuItems = async (req, res) => {
     try {
-        const query = 'SELECT menuitemid, drinkcategory, menuitemname, price FROM menuitems ORDER BY menuitemname';
+        const query = 'SELECT menuitemid, drinkcategory, menuitemname, price, image_url FROM menuitems ORDER BY menuitemname';
         const result = await pool.query(query);
         res.json({ success: true, data: result.rows });
     } catch (error) {
@@ -22,11 +22,12 @@ const getAllMenuItems = async (req, res) => {
  * @param {string} drinkcategory - Category of the drink (e.g., "Milk Tea", "Fruit Tea")
  * @param {string} menuitemname - Name of the menu item
  * @param {number} price - Price of the menu item
+ * @param {string} image_url - Optional image URL for the menu item
  * @returns {Object} The newly created menu item
  */
 const addMenuItem = async (req, res) => {
     try {
-        const { drinkcategory, menuitemname, price } = req.body;
+        const { drinkcategory, menuitemname, price, image_url } = req.body;
         
         // Validate required fields
         if (!drinkcategory || !menuitemname || price === undefined) {
@@ -37,8 +38,8 @@ const addMenuItem = async (req, res) => {
         const idResult = await pool.query('SELECT COALESCE(MAX(menuitemid), 0) + 1 as next_id FROM menuitems');
         const nextId = idResult.rows[0].next_id;
 
-        const query = 'INSERT INTO menuitems (menuitemid, drinkcategory, menuitemname, price) VALUES ($1, $2, $3, $4) RETURNING *';
-        const result = await pool.query(query, [nextId, drinkcategory, menuitemname, price]);
+        const query = 'INSERT INTO menuitems (menuitemid, drinkcategory, menuitemname, price, image_url) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+        const result = await pool.query(query, [nextId, drinkcategory, menuitemname, price, image_url || null]);
         
         res.status(201).json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -80,18 +81,19 @@ const updateMenuItemPrice = async (req, res) => {
 };
 
 /**
- * Update a menu item (name, category, price)
+ * Update a menu item (name, category, price, image_url)
  * @route PUT /api/menu/:id
  * @param {number} id - Menu item ID (from URL params)
  * @param {string} drinkcategory - Category of the drink (optional)
  * @param {string} menuitemname - Name of the menu item (optional)
  * @param {number} price - Price of the menu item (optional)
+ * @param {string} image_url - Image URL of the menu item (optional)
  * @returns {Object} Updated menu item
  */
 const updateMenuItem = async (req, res) => {
     try {
         const { id } = req.params;
-        const { drinkcategory, menuitemname, price } = req.body;
+        const { drinkcategory, menuitemname, price, image_url } = req.body;
 
         // Build dynamic update query based on provided fields
         const updates = [];
@@ -113,6 +115,12 @@ const updateMenuItem = async (req, res) => {
         if (price !== undefined) {
             updates.push(`price = $${paramCount}`);
             values.push(price);
+            paramCount++;
+        }
+
+        if (image_url !== undefined) {
+            updates.push(`image_url = $${paramCount}`);
+            values.push(image_url);
             paramCount++;
         }
 

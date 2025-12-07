@@ -9,6 +9,7 @@ export interface MenuItem {
     drinkcategory: string;
     menuitemname: string;
     price: number;
+    image_url?: string;
 }
 
 /**
@@ -45,16 +46,17 @@ export const getAllMenuItems = async (): Promise<MenuItem[]> => {
  * @param drinkcategory - Category of the drink
  * @param menuitemname - Name of the menu item
  * @param price - Price of the menu item
+ * @param image_url - Optional image URL for the menu item
  * @returns Promise resolving to the newly created menu item
  * @throws Error if the API request fails
  */
-export const addMenuItem = async (drinkcategory: string, menuitemname: string, price: number): Promise<MenuItem> => {
+export const addMenuItem = async (drinkcategory: string, menuitemname: string, price: number, image_url?: string): Promise<MenuItem> => {
     const response = await fetch(`${API_BASE_URL}/menu`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ drinkcategory, menuitemname, price })
+        body: JSON.stringify({ drinkcategory, menuitemname, price, image_url })
     });
 
     const result = await response.json();
@@ -70,11 +72,11 @@ export const addMenuItem = async (drinkcategory: string, menuitemname: string, p
 /**
  * Update a menu item
  * @param menuItemId - The ID of the menu item to update
- * @param updates - Object with optional fields: drinkcategory, menuitemname, price
+ * @param updates - Object with optional fields: drinkcategory, menuitemname, price, image_url
  * @returns Promise resolving to the updated menu item
  * @throws Error if the API request fails
  */
-export const updateMenuItem = async (menuItemId: number, updates: { drinkcategory?: string; menuitemname?: string; price?: number }): Promise<MenuItem> => {
+export const updateMenuItem = async (menuItemId: number, updates: { drinkcategory?: string; menuitemname?: string; price?: number; image_url?: string }): Promise<MenuItem> => {
     const response = await fetch(`${API_BASE_URL}/menu/${menuItemId}`, {
         method: 'PUT',
         headers: {
@@ -195,4 +197,26 @@ export const removeMenuItemIngredient = async (menuItemId: number, ingredientId:
     if (!result.success) {
         throw new Error(result.error || 'Failed to remove menu item ingredient');
     }
+};
+
+/**
+ * Upload an image file to Cloudinary
+ * @param file - The image file to upload
+ * @returns Promise resolving to the uploaded image URL
+ * @throws Error if the upload fails
+ */
+export const uploadImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const response = await fetch(`${API_BASE_URL}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const result = await response.json();
+  if (result.success) {
+    return result.data.url;
+  }
+  throw new Error(result.error || 'Failed to upload image');
 };
