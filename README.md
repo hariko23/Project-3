@@ -7,6 +7,28 @@ A full-stack Point of Sale system for a boba tea shop.
 - **Backend**: Node.js, Express, PostgreSQL
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS
 
+## Folder Structure
+
+```
+Project-3/
+├── backend/
+│   ├── api/              # API route handlers
+│   ├── config/           # Database configuration
+│   ├── controllers/      # Business logic controllers
+│   ├── migrations/       # Database migration scripts
+│   ├── routes/           # Express route definitions
+│   ├── scripts/          # Utility scripts
+│   └── server.js         # Main server file
+├── frontend/
+│   ├── public/           # Static assets
+│   └── src/
+│       ├── api/          # API client functions
+│       ├── components/  # React components
+│       ├── contexts/     # React contexts
+│       └── lib/          # Utility functions
+└── Scrum_meetings/       # Sprint documentation
+```
+
 ## Getting Started
 
 ### Backend

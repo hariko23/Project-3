@@ -204,3 +204,4 @@ INSERT INTO menuitemingredients (menuitemingredientid, menuitemid, ingredientid,
 (121, 30, 26, 2), -- Winter Melon Syrup: 2 units
 (122, 30, 10, 1), -- Sugar: 1 unit
 (123, 30, 24, 3); -- Ice: 3 units
+
