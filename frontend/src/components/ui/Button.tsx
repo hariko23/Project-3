@@ -39,6 +39,7 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
   className?: string; // Additional CSS classes
   style?: CSSProperties; // Inline styles (for backward compatibility)
   disabled?: boolean; // Disabled state
+  title?: string; // Tooltip text (HTML title attribute)
 }
 
 /**
@@ -53,20 +54,21 @@ interface ButtonProps extends VariantProps<typeof buttonVariants> {
  * @param size - Button size (default, sm, lg, icon)
  * @param className - Additional CSS classes to merge
  * @param disabled - Disabled state
+ * @param title - Tooltip text
  */
-function Button({ children, to, onClick, variant, size, className, style, disabled }: ButtonProps) {
+function Button({ children, to, onClick, variant, size, className, style, disabled, title }: ButtonProps) {
   const buttonClasses = cn(buttonVariants({ variant, size }), className);
 
   if (to) {
     return (
-      <Link to={to} className={buttonClasses} style={style}>
+      <Link to={to} className={buttonClasses} style={style} title={title}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button onClick={onClick} className={buttonClasses} style={style} disabled={disabled}>
+    <button onClick={onClick} className={buttonClasses} style={style} disabled={disabled} title={title}>
       {children}
     </button>
   );

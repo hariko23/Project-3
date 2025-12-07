@@ -66,6 +66,7 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/employees', require('./routes/employees'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/weather', require('./routes/weather'));
 
 // Health check
 app.get('/', (req, res) => {

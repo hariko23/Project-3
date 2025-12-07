@@ -71,13 +71,13 @@ function Receipt({ orderNumber, items, total, timestamp, onClose }: ReceiptProps
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-auto">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-auto border border-border">
         {/* Header with close button */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Receipt</h2>
+        <div className="sticky top-0 bg-card border-b border-border p-4 flex justify-between items-center z-10">
+          <h2 className="text-xl font-semibold text-foreground">Receipt</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl leading-none w-8 h-8 flex items-center justify-center"
+            className="text-muted-foreground hover:text-foreground text-2xl leading-none w-8 h-8 flex items-center justify-center transition-colors"
             aria-label="Close"
           >
             ×
@@ -87,30 +87,30 @@ function Receipt({ orderNumber, items, total, timestamp, onClose }: ReceiptProps
         {/* Receipt Content */}
         <div ref={receiptRef} className="p-6">
           <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold mb-2">BOBA POS SYSTEM</h3>
-            <div className="border-t-2 border-b-2 border-gray-300 py-2 my-2">
-              <p className="text-lg font-semibold">Order #{orderNumber}</p>
+            <h3 className="text-2xl font-bold mb-2 text-foreground">BOBA POS SYSTEM</h3>
+            <div className="border-t-2 border-b-2 border-border py-2 my-2">
+              <p className="text-lg font-semibold text-foreground">Order #{orderNumber}</p>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {new Date(timestamp).toLocaleString()}
             </p>
           </div>
 
           {/* Items List */}
           <div className="mb-6">
-            <h4 className="font-semibold mb-3 text-sm border-b border-gray-300 pb-2">
+            <h4 className="font-semibold mb-3 text-sm border-b border-border pb-2 text-foreground">
               ITEMS
             </h4>
             <div className="space-y-3">
               {items.map((item, index) => (
                 <div key={index} className="flex justify-between items-start text-sm">
                   <div className="flex-1">
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-gray-600 text-xs">
+                    <div className="font-medium text-foreground">{item.name}</div>
+                    <div className="text-muted-foreground text-xs">
                       {item.quantity} × ${item.price.toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-semibold ml-4">
+                  <div className="font-semibold ml-4 text-foreground">
                     ${(item.quantity * item.price).toFixed(2)}
                   </div>
                 </div>
@@ -119,25 +119,25 @@ function Receipt({ orderNumber, items, total, timestamp, onClose }: ReceiptProps
           </div>
 
           {/* Total */}
-          <div className="border-t-2 border-gray-300 pt-3 mb-6">
-            <div className="flex justify-between items-center text-lg font-bold">
+          <div className="border-t-2 border-border pt-3 mb-6">
+            <div className="flex justify-between items-center text-lg font-bold text-foreground">
               <span>TOTAL</span>
               <span>${total.toFixed(2)}</span>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="text-center text-sm text-gray-600 border-t border-gray-200 pt-4">
+          <div className="text-center text-sm text-muted-foreground border-t border-border pt-4">
             <p>Thank you for your order!</p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex gap-3">
+        <div className="sticky bottom-0 bg-card border-t border-border p-4 flex gap-3 z-10">
           <Button onClick={handleDownload} className="flex-1">
             Download Receipt
           </Button>
-          <Button onClick={onClose} className="flex-1 bg-gray-500 hover:bg-gray-600">
+          <Button onClick={onClose} className="flex-1" variant="secondary">
             Close
           </Button>
         </div>

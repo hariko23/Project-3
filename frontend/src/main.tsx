@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { AccessibilityProvider } from './contexts/AccessibilityContext.tsx'
+import { ThemeProvider } from './contexts/ThemeContext.tsx'
 import { ClerkProvider } from '@clerk/clerk-react'
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -13,10 +14,12 @@ if (!PUBLISHABLE_KEY) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AccessibilityProvider>
-      <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-        <App />
-      </ClerkProvider>
-    </AccessibilityProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <ThemeProvider>
+        <AccessibilityProvider>
+          <App />
+        </AccessibilityProvider>
+      </ThemeProvider>
+    </ClerkProvider>
   </StrictMode>,
 )

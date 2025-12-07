@@ -109,7 +109,7 @@ function AttractScreen({ onInteract, seasonalItems }: { onInteract: () => void; 
               {seasonalItems.map((item) => (
                 <div 
                   key={item.menuitemid}
-                  className="bg-white rounded-xl p-6 shadow-2xl border-4 border-yellow-300 transform hover:scale-105 transition-transform duration-200"
+                  className="bg-card rounded-xl p-6 shadow-2xl border-4 border-yellow-300 transform hover:scale-105 transition-transform duration-200"
                   onClick={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                 >
@@ -119,10 +119,10 @@ function AttractScreen({ onInteract, seasonalItems }: { onInteract: () => void; 
                     </span>
                   </div>
                   <div className="flex flex-col text-center">
-                    <span className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+                    <span className="text-2xl md:text-3xl font-bold text-foreground mb-2">
                       {item.menuitemname}
                     </span>
-                    <span className="text-base md:text-lg text-gray-600 mb-3">{item.drinkcategory}</span>
+                    <span className="text-base md:text-lg text-muted-foreground mb-3">{item.drinkcategory}</span>
                     <span className="text-3xl md:text-4xl font-bold text-purple-600">
                       ${item.price.toFixed(2)}
                     </span>
@@ -474,7 +474,7 @@ function CustomerKioskLayout() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-background">
         <div className="text-center">
           <div className="text-2xl font-normal mb-4">Loading menu...</div>
         </div>
@@ -483,7 +483,7 @@ function CustomerKioskLayout() {
   }
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-background min-h-screen">
       {/* Attract Screen - shown when idle */}
       {isIdle && <AttractScreen onInteract={handleInteraction} seasonalItems={seasonalItems} />}
 
@@ -502,17 +502,17 @@ function CustomerKioskLayout() {
       )}
 
       {/* Header */}
-      <div className="bg-white border-b-2 border-gray-300 text-gray-800 p-6 shadow-sm">
+      <div className="bg-card border-b-2 border-border text-foreground p-6 shadow-sm">
         <div className="flex justify-between items-center mb-4">
           <Link to="/home">
-            <Button className="bg-gray-200 hover:bg-gray-300 text-gray-800">
+            <Button className="bg-secondary hover:bg-secondary/80 text-secondary-foreground">
               ← Back to Home
             </Button>
           </Link>
           <Translator />
         </div>
         <h1 className="text-4xl font-bold text-center mb-2">Welcome to Boba Shop</h1>
-        <p className="text-center text-lg text-gray-600">Order your favorite drinks</p>
+        <p className="text-center text-lg text-muted-foreground">Order your favorite drinks</p>
       </div>
 
       <div className="flex h-[calc(100vh-140px)]">
@@ -528,7 +528,7 @@ function CustomerKioskLayout() {
               className={`px-6 py-3 rounded-lg text-lg font-medium transition-colors ${
                 selectedCategory === 'all'
                   ? 'bg-purple-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
               All
@@ -543,7 +543,7 @@ function CustomerKioskLayout() {
                 className={`px-6 py-3 rounded-lg text-lg font-medium transition-colors ${
                   selectedCategory === category
                     ? 'bg-purple-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
               >
                 {category}
@@ -552,8 +552,8 @@ function CustomerKioskLayout() {
           </div>
 
           {/* Size Selector */}
-          <div className="mb-6 bg-white border-2 border-purple-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">Select Size:</h3>
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Select Size:</h3>
             <div className="flex gap-3">
               {(['Small', 'Medium', 'Large'] as DrinkSize[]).map((size) => (
                 <button
@@ -565,7 +565,7 @@ function CustomerKioskLayout() {
                   className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
                     selectedSize === size
                       ? 'bg-purple-600 text-white shadow-lg scale-105'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
                   <div>{size}</div>
@@ -578,8 +578,8 @@ function CustomerKioskLayout() {
           </div>
 
           {/* Topping Selector */}
-          <div className="mb-6 bg-white border-2 border-purple-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-800">
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">
               Add Toppings: {selectedToppings.length > 0 && `(${selectedToppings.length} selected)`}
             </h3>
             <div className="grid grid-cols-3 gap-2">
@@ -590,7 +590,7 @@ function CustomerKioskLayout() {
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                     selectedToppings.includes(topping.id)
                       ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
                   <div>{topping.name}</div>
@@ -599,7 +599,7 @@ function CustomerKioskLayout() {
               ))}
             </div>
             {selectedToppings.length > 0 && (
-              <div className="mt-3 text-sm text-gray-600">
+              <div className="mt-3 text-sm text-muted-foreground">
                 Total toppings: +$
                 {selectedToppings.reduce((sum, id) => {
                   const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
@@ -612,7 +612,7 @@ function CustomerKioskLayout() {
           {/* Menu Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMenuItems.length === 0 ? (
-              <div className="col-span-full text-center text-gray-500 text-xl py-10">
+              <div className="col-span-full text-center text-muted-foreground text-xl py-10">
                 No items found in this category
               </div>
             ) : (
@@ -621,17 +621,17 @@ function CustomerKioskLayout() {
                 return (
                   <div
                     key={item.menuitemid}
-                    className="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-purple-400 hover:shadow-lg transition-all cursor-pointer"
+                    className="bg-card border-2 border-border rounded-xl p-6 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer"
                     onClick={() => addToCart(item)}
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-2xl font-bold text-gray-800">{item.menuitemname}</h3>
+                      <h3 className="text-2xl font-bold text-foreground">{item.menuitemname}</h3>
                       <div className="text-right">
                         <span className="text-xl font-bold text-purple-600">${priceForSize.toFixed(2)}</span>
-                        <div className="text-sm text-gray-500">{selectedSize}</div>
+                        <div className="text-sm text-muted-foreground">{selectedSize}</div>
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-4">{item.drinkcategory}</p>
+                    <p className="text-muted-foreground mb-4">{item.drinkcategory}</p>
                     <button
                       className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors"
                       onClick={(e) => {
@@ -649,13 +649,13 @@ function CustomerKioskLayout() {
         </div>
 
         {/* Right Panel - Shopping Cart */}
-        <div className="w-96 bg-gray-50 border-l-2 border-gray-200 p-6 flex flex-col">
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">Your Order</h2>
+        <div className="w-96 bg-muted border-l-2 border-border p-6 flex flex-col">
+          <h2 className="text-3xl font-bold mb-6 text-foreground">Your Order</h2>
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto mb-6">
             {cart.length === 0 ? (
-              <div className="text-center text-gray-500 py-10">
+              <div className="text-center text-muted-foreground py-10">
                 <div className="text-4xl mb-4">🛒</div>
                 <p className="text-lg">Your cart is empty</p>
                 <p className="text-sm mt-2">Add items from the menu to get started</p>
@@ -665,12 +665,12 @@ function CustomerKioskLayout() {
                 {cart.map((item, index) => (
                   <div
                     key={`${item.menuitemid}-${item.size}-${index}`}
-                    className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
+                    className="bg-card rounded-lg p-4 shadow-sm border border-border"
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
-                        <h4 className="font-bold text-lg text-gray-800">{item.name}</h4>
-                        <p className="text-gray-600 text-sm">${item.price.toFixed(2)} each</p>
+                        <h4 className="font-bold text-lg text-foreground">{item.name}</h4>
+                        <p className="text-muted-foreground text-sm">${item.price.toFixed(2)} each</p>
                         {item.toppings.length > 0 && (
                           <p className="text-purple-600 text-xs mt-1">
                             Toppings: {item.toppings.map(id => {

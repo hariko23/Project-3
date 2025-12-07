@@ -7,6 +7,8 @@ import MenuBoardView from './components/MenuBoardView';
 import LoginPage from './components/LoginPage';
 import AccessibilityButton from './components/AccessibilityButton';
 import { useAuth, UserButton } from '@clerk/clerk-react';
+import { useTheme } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 
 
 /**
@@ -20,8 +22,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   // Show nothing while checking authentication
   if (!isLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -72,11 +74,12 @@ function Navigation() {
   }
 
   return (
-    <nav className="p-2.5 border-b border-gray-300 flex justify-between items-center">
-      <Link to="/home" className="mr-2.5 text-black no-underline">
+    <nav className="p-2.5 border-b border-border bg-card flex justify-between items-center">
+      <Link to="/home" className="mr-2.5 text-foreground no-underline hover:text-primary transition-colors">
         {getPageName()}
       </Link>
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
+        <ThemeToggle />
         <UserButton afterSignOutUrl="/login" />
       </div>
     </nav>
@@ -97,9 +100,11 @@ function Navigation() {
  * - * : Catch-all route that redirects to login
  */
 function App() {
+  const { theme } = useTheme();
+  
   return (
     <Router>
-      <div className="bg-white min-h-screen">
+      <div className="min-h-screen bg-background text-foreground">
         <Navigation />
         <Routes>
           <Route path="/" element={<LoginPage />} />
