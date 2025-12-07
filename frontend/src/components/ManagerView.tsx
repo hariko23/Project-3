@@ -647,27 +647,27 @@ function ManagerView() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-white min-h-screen">
+    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-background dark:from-purple-950 dark:via-pink-950 dark:to-background min-h-screen">
       {/* Header */}
-      <div className="bg-white border-b-2 border-purple-200 p-6 shadow-sm">
+      <div className="bg-card border-b-2 border-purple-200 dark:border-purple-800 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <Button to="/" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium">
             ← Back to Menu
           </Button>
-          <h1 className="text-4xl font-bold text-gray-800">Manager Dashboard</h1>
+          <h1 className="text-4xl font-bold text-foreground">Manager Dashboard</h1>
           <Translator />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b-2 border-purple-200 shadow-sm">
+      <div className="bg-card border-b-2 border-purple-200 dark:border-purple-800 shadow-sm">
         <div className="flex gap-2 px-6">
           <button
             onClick={() => setActiveTab('inventory')}
             className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
               activeTab === 'inventory' 
                 ? 'border-b-4 border-purple-600 text-purple-600' 
-                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+                : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
             Inventory
@@ -677,7 +677,7 @@ function ManagerView() {
             className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
               activeTab === 'menu' 
                 ? 'border-b-4 border-purple-600 text-purple-600' 
-                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+                : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
             Menu Items
@@ -687,7 +687,7 @@ function ManagerView() {
             className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
               activeTab === 'analytics' 
                 ? 'border-b-4 border-purple-600 text-purple-600' 
-                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+                : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
             Analytics
@@ -697,7 +697,7 @@ function ManagerView() {
             className={`px-6 py-4 border-none bg-transparent cursor-pointer text-base font-medium transition-all ${
               activeTab === 'orders' 
                 ? 'border-b-4 border-purple-600 text-purple-600' 
-                : 'border-b-4 border-transparent text-gray-600 hover:text-purple-500'
+                : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
             Orders
@@ -710,7 +710,7 @@ function ManagerView() {
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <div className="text-2xl font-semibold text-purple-600 mb-2">Loading...</div>
-            <div className="text-gray-600">Please wait</div>
+            <div className="text-muted-foreground">Please wait</div>
           </div>
         </div>
       ) : (
@@ -718,33 +718,33 @@ function ManagerView() {
           {/* Inventory Tab */}
           {activeTab === 'inventory' && (
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-gray-800">Inventory Management</h2>
+              <h2 className="text-3xl font-bold mb-6 text-foreground">Inventory Management</h2>
 
               {/* Add New Item Form */}
-              <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6 shadow-sm">
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-6 mb-6 shadow-sm">
+                <h3 className="text-xl font-semibold mb-4 text-foreground">
                   Add New Inventory Item
                 </h3>
                 <div className="flex gap-4 items-end">
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Item Name</label>
                     <input
                       type="text"
                       placeholder="Enter ingredient name"
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
-                      className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-colors"
                     />
                   </div>
                   <div className="w-48">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Quantity</label>
                     <input
                       type="number"
                       placeholder="0"
                       value={newItemQuantity}
                       onChange={(e) => setNewItemQuantity(parseInt(e.target.value) || 0)}
                       min="0"
-                      className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none transition-colors"
+                      className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-colors"
                     />
                   </div>
                   <Button 
@@ -757,7 +757,7 @@ function ManagerView() {
               </div>
 
               {/* Inventory List (Raw Ingredients) */}
-              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4">
                   <h3 className="text-xl font-bold text-white">
                     Raw Ingredients Inventory
@@ -767,27 +767,27 @@ function ManagerView() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-purple-50 border-b-2 border-purple-200">
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">ID</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Item Name</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Quantity</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Status</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Actions</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">ID</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Item Name</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Quantity</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Status</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {inventory.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="p-8 text-center">
-                            <div className="text-gray-400">
+                            <div className="text-muted-foreground">
                               <div className="text-lg">No inventory items found</div>
                             </div>
                           </td>
                         </tr>
                       ) : (
                         inventory.map((item) => (
-                          <tr key={item.ingredientid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
-                            <td className="p-4 text-base font-medium text-gray-700">{item.ingredientid}</td>
-                            <td className="p-4 text-base font-medium text-gray-800">{item.ingredientname}</td>
+                          <tr key={item.ingredientid} className="border-b border-border hover:bg-accent transition-colors">
+                            <td className="p-4 text-base font-medium text-foreground">{item.ingredientid}</td>
+                            <td className="p-4 text-base font-medium text-foreground">{item.ingredientname}</td>
                             <td className="p-4 text-base">
                               {editingItem === item.ingredientid ? (
                                 <input
@@ -831,7 +831,7 @@ function ManagerView() {
                                   <Button 
                                     onClick={cancelEdit} 
                                     size="sm" 
-                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                                    className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium"
                                   >
                                     Cancel
                                   </Button>
@@ -860,7 +860,7 @@ function ManagerView() {
           {activeTab === 'menu' && (
             <div className="max-w-7xl mx-auto">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-gray-800">Menu Items</h2>
+                <h2 className="text-3xl font-bold text-foreground">Menu Items</h2>
                 <Button 
                   onClick={() => setShowCreateMenuItemModal(true)}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium text-base transition-colors"
@@ -870,12 +870,12 @@ function ManagerView() {
               </div>
               
               {/* Category Filter */}
-              <div className="mb-6 bg-white border-2 border-purple-200 rounded-lg p-4 shadow-sm">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Drink Category:</label>
+              <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4 shadow-sm">
+                <label className="block text-sm font-medium text-foreground mb-2">Filter by Drink Category:</label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full md:w-64 p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none transition-colors"
+                  className="w-full md:w-64 p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-colors"
                 >
                   <option value="all">All Categories</option>
                   {categories.map((category) => (
@@ -887,7 +887,7 @@ function ManagerView() {
               </div>
 
               {/* Menu Items List (Drinks) */}
-              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4">
                   <h3 className="text-xl font-bold text-white">
                     Menu Items ({selectedCategory === 'all' ? 'All Categories' : selectedCategory})
@@ -897,20 +897,20 @@ function ManagerView() {
                   <table className="w-full">
                     <thead className="sticky top-0 bg-purple-50 z-10">
                       <tr className="border-b-2 border-purple-200">
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">ID</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Drink Name</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Category</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Price</th>
-                        <th className="p-4 text-left text-sm font-bold text-gray-700">Actions</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">ID</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Drink Name</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Category</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Price</th>
+                        <th className="p-4 text-left text-sm font-bold text-foreground">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {menuItems
                         .filter(item => selectedCategory === 'all' || item.drinkcategory === selectedCategory)
                         .map((item) => (
-                          <tr key={item.menuitemid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
-                            <td className="p-4 text-base font-medium text-gray-700">{item.menuitemid}</td>
-                            <td className="p-4 text-base font-medium text-gray-800">{item.menuitemname}</td>
+                          <tr key={item.menuitemid} className="border-b border-border hover:bg-accent transition-colors">
+                            <td className="p-4 text-base font-medium text-foreground">{item.menuitemid}</td>
+                            <td className="p-4 text-base font-medium text-foreground">{item.menuitemname}</td>
                             <td className="p-4 text-base">
                               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
                                 {item.drinkcategory}
@@ -952,7 +952,7 @@ function ManagerView() {
               {/* Ingredients Modal */}
               {showIngredientsModal && selectedMenuItem && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowIngredientsModal(false)}>
-                  <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                  <div className="bg-card rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden border border-border" onClick={(e) => e.stopPropagation()}>
                     <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-6">
                       <h3 className="text-2xl font-bold text-white">Ingredients for {selectedMenuItem.menuitemname}</h3>
                     </div>
@@ -972,9 +972,9 @@ function ManagerView() {
                             <table className="w-full">
                               <thead>
                                 <tr className="bg-purple-50 border-b-2 border-purple-200">
-                                  <th className="p-4 text-left text-sm font-bold text-gray-700">Ingredient Name</th>
-                                  <th className="p-4 text-left text-sm font-bold text-gray-700">Quantity</th>
-                                  <th className="p-4 text-left text-sm font-bold text-gray-700">Actions</th>
+                                  <th className="p-4 text-left text-sm font-bold text-foreground">Ingredient Name</th>
+                                  <th className="p-4 text-left text-sm font-bold text-foreground">Quantity</th>
+                                  <th className="p-4 text-left text-sm font-bold text-foreground">Actions</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -983,15 +983,15 @@ function ManagerView() {
                                     ? editingIngredients[ingredient.ingredientid] 
                                     : ingredient.ingredientqty;
                                   return (
-                                    <tr key={ingredient.ingredientid} className="border-b border-gray-200 hover:bg-purple-50 transition-colors">
-                                      <td className="p-4 text-base font-medium text-gray-800">{ingredient.ingredientname}</td>
+                                    <tr key={ingredient.ingredientid} className="border-b border-border hover:bg-accent transition-colors">
+                                      <td className="p-4 text-base font-medium text-foreground">{ingredient.ingredientname}</td>
                                       <td className="p-4">
                                         <input
                                           type="number"
                                           value={editedQty}
                                           onChange={(e) => handleIngredientQuantityChange(ingredient.ingredientid, parseInt(e.target.value) || 0)}
                                           min="0"
-                                          className="p-2 border-2 border-gray-300 rounded-lg text-base w-24 focus:border-purple-500 focus:outline-none"
+                                          className="p-2 border-2 border-border rounded-lg text-base w-24 bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                                         />
                                       </td>
                                       <td className="p-4">
@@ -1013,12 +1013,12 @@ function ManagerView() {
 
                         {/* Add New Ingredient */}
                         <div className="border-2 border-purple-200 rounded-lg p-4 bg-purple-50">
-                          <h4 className="text-base font-bold mb-3 text-gray-800">Add New Ingredient</h4>
+                          <h4 className="text-base font-bold mb-3 text-foreground">Add New Ingredient</h4>
                           <div className="flex gap-3 items-center">
                             <select
                               value={newIngredientId}
                               onChange={(e) => setNewIngredientId(e.target.value ? Number(e.target.value) : '')}
-                              className="flex-1 p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                              className="flex-1 p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                             >
                               <option value="">Select ingredient...</option>
                               {availableInventory
@@ -1035,7 +1035,7 @@ function ManagerView() {
                               onChange={(e) => setNewIngredientQty(parseInt(e.target.value) || 0)}
                               min="0"
                               placeholder="Quantity"
-                              className="p-3 border-2 border-gray-300 rounded-lg text-base w-32 focus:border-purple-500 focus:outline-none"
+                              className="p-3 border-2 border-border rounded-lg text-base w-32 bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                             />
                           </div>
                         </div>
@@ -1043,7 +1043,7 @@ function ManagerView() {
                     )}
                     </div>
                     
-                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex justify-end gap-3">
+                    <div className="border-t-2 border-purple-200 dark:border-purple-800 p-6 bg-muted flex justify-end gap-3">
                       <Button 
                         onClick={() => {
                           setShowIngredientsModal(false);
@@ -1051,7 +1051,7 @@ function ManagerView() {
                           setNewIngredientId('');
                           setNewIngredientQty(0);
                         }}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                        className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
@@ -1077,22 +1077,22 @@ function ManagerView() {
                     <div className="p-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Menu Item Name</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">Menu Item Name</label>
                           <input
                             type="text"
                             value={newMenuItemName}
                             onChange={(e) => setNewMenuItemName(e.target.value)}
                             placeholder="Enter menu item name"
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">Category</label>
                           <select
                             value={newMenuItemCategory}
                             onChange={(e) => setNewMenuItemCategory(e.target.value)}
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           >
                             <option value="">Select category...</option>
                             {categories.map((category) => (
@@ -1104,7 +1104,7 @@ function ManagerView() {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">Price</label>
                           <input
                             type="number"
                             value={newMenuItemPrice}
@@ -1112,13 +1112,13 @@ function ManagerView() {
                             placeholder="0.00"
                             min="0"
                             step="0.01"
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           />
                         </div>
                       </div>
                     </div>
                     
-                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex justify-end gap-3">
+                    <div className="border-t-2 border-purple-200 dark:border-purple-800 p-6 bg-muted flex justify-end gap-3">
                       <Button 
                         onClick={() => {
                           setShowCreateMenuItemModal(false);
@@ -1126,7 +1126,7 @@ function ManagerView() {
                           setNewMenuItemCategory('');
                           setNewMenuItemPrice(0);
                         }}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                        className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
@@ -1151,22 +1151,22 @@ function ManagerView() {
                     <div className="p-6">
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Menu Item Name</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">Menu Item Name</label>
                           <input
                             type="text"
                             value={editingMenuItem.menuitemname}
                             onChange={(e) => setEditingMenuItem({ ...editingMenuItem, menuitemname: e.target.value })}
                             placeholder="Enter menu item name"
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">Category</label>
                           <select
                             value={editingMenuItem.drinkcategory}
                             onChange={(e) => setEditingMenuItem({ ...editingMenuItem, drinkcategory: e.target.value })}
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base bg-white focus:border-purple-500 focus:outline-none"
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           >
                             {categories.map((category) => (
                               <option key={category} value={category}>
@@ -1177,7 +1177,7 @@ function ManagerView() {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                          <label className="block text-sm font-medium text-foreground mb-2">Price</label>
                           <input
                             type="number"
                             value={editingMenuItem.price}
@@ -1185,19 +1185,19 @@ function ManagerView() {
                             placeholder="0.00"
                             min="0"
                             step="0.01"
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg text-base focus:border-purple-500 focus:outline-none"
+                            className="w-full p-3 border-2 border-border rounded-lg text-base bg-background text-foreground focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none"
                           />
                         </div>
                       </div>
                     </div>
                     
-                    <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex justify-end gap-3">
+                    <div className="border-t-2 border-purple-200 dark:border-purple-800 p-6 bg-muted flex justify-end gap-3">
                       <Button 
                         onClick={() => {
                           setShowUpdateMenuItemModal(false);
                           setEditingMenuItem(null);
                         }}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                        className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
@@ -1237,12 +1237,12 @@ function ManagerView() {
               </div>
 
               {/* Report Content */}
-              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm overflow-hidden">
                 {selectedReport === 'overview' && (
                   <div className="p-6">
                     {/* Sales Data */}
-                    <div className="bg-white border-2 border-purple-200 rounded-lg p-6 mb-6 shadow-sm">
-                      <h3 className="text-xl font-semibold mb-4 text-gray-800">Total Sales</h3>
+                    <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-6 mb-6 shadow-sm">
+                      <h3 className="text-xl font-semibold mb-4 text-foreground">Total Sales</h3>
                       <div className="flex gap-3 items-center mb-4 flex-wrap">
                         <input
                           type="date"
@@ -1277,7 +1277,7 @@ function ManagerView() {
                     </div>
 
                     {/* Product Usage */}
-                    <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+                    <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm overflow-hidden">
                       <div className="bg-gradient-to-r from-purple-600 to-purple-500 p-4">
                         <h3 className="text-xl font-bold text-white">Product Usage (Last 30 Days)</h3>
                       </div>
@@ -1495,13 +1495,13 @@ function ManagerView() {
                     <div className="border-t-2 border-purple-200 p-6 bg-gray-50 flex gap-3 justify-end">
                       <Button 
                         onClick={resetOrderFilters} 
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                        className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >
                         Reset
                       </Button>
                       <Button 
                         onClick={() => setShowOrderFilterModal(false)} 
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium"
+                        className="bg-secondary hover:bg-secondary/80 text-secondary-foreground px-6 py-3 rounded-lg font-medium"
                       >
                         Cancel
                       </Button>
@@ -1533,7 +1533,7 @@ function ManagerView() {
               </div>
 
               {/* Orders List */}
-              <div className="bg-white border-2 border-purple-200 rounded-lg shadow-sm overflow-hidden">
+              <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg shadow-sm overflow-hidden">
                 <div className="bg-purple-100 p-4 border-b-2 border-purple-200 text-base font-medium text-purple-800">
                   Showing {filteredOrders.length} of {allFilteredOrders.length} matching orders
                   {allFilteredOrders.length !== orders.length && ` (${orders.length} total orders)`}

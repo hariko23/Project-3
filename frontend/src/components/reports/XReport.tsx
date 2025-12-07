@@ -47,7 +47,7 @@ function XReport() {
         <Button onClick={generateReport} disabled={loading}>
           {loading ? 'Generating...' : 'Generate X-Report'}
         </Button>
-        <p className="text-xs text-gray-600 mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           This report shows hourly sales for today and can be run multiple times.
         </p>
       </div>
@@ -56,18 +56,18 @@ function XReport() {
         <div className="space-y-4">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="border border-gray-300 p-4 bg-gray-50">
-              <div className="text-xs text-gray-600 mb-1.5">Total Sales (Today)</div>
+            <div className="border border-border p-4 bg-muted">
+              <div className="text-xs text-muted-foreground mb-1.5">Total Sales (Today)</div>
               <div className="text-2xl font-bold">${reportData.totalSales.toFixed(2)}</div>
             </div>
-            <div className="border border-gray-300 p-4 bg-gray-50">
-              <div className="text-xs text-gray-600 mb-1.5">Total Orders</div>
+            <div className="border border-border p-4 bg-muted">
+              <div className="text-xs text-muted-foreground mb-1.5">Total Orders</div>
               <div className="text-2xl font-bold">{reportData.totalOrders}</div>
             </div>
           </div>
 
           {/* Hourly Sales Table */}
-          <div className="border border-gray-300">
+          <div className="border border-border">
             <div className="bg-gray-100 p-2 border-b border-gray-300">
               <h4 className="text-sm font-bold m-0">Hourly Breakdown</h4>
             </div>

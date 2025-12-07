@@ -62,15 +62,15 @@ function MenuBoardView() {
 
   if (loading) {
     return (
-      <div className="p-5 text-center bg-white">
-        <h1 className="text-2xl font-normal">Menu Board</h1>
-        <p className="mt-5 text-gray-600">Loading...</p>
+      <div className="p-5 text-center bg-background">
+        <h1 className="text-2xl font-normal text-foreground">Menu Board</h1>
+        <p className="mt-5 text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 bg-white min-h-screen">
+    <div className="p-8 bg-background min-h-screen">
       <div className="flex justify-end mb-4">
         <Translator />
       </div>
@@ -95,7 +95,7 @@ function MenuBoardView() {
                 {seasonalItems.map((item) => (
                   <div 
                     key={item.menuitemid} 
-                    className="bg-white rounded-lg p-5 shadow-xl border-4 border-yellow-300 transform hover:scale-105 transition-transform duration-200"
+                    className="bg-card rounded-lg p-5 shadow-xl border-4 border-yellow-300 transform hover:scale-105 transition-transform duration-200"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold bg-red-500 text-white px-2 py-1 rounded-full">
@@ -103,11 +103,11 @@ function MenuBoardView() {
                       </span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-xl font-bold text-gray-800 mb-1">
+                      <span className="text-xl font-bold text-foreground mb-1">
                         {item.menuitemname}
                       </span>
-                      <span className="text-sm text-gray-600 mb-2">{item.drinkcategory}</span>
-                      <span className="text-2xl font-bold text-purple-600">
+                      <span className="text-sm text-muted-foreground mb-2">{item.drinkcategory}</span>
+                      <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                         ${item.price.toFixed(2)}
                       </span>
                     </div>
@@ -121,15 +121,15 @@ function MenuBoardView() {
         {/* Regular Menu Items by Category */}
         {Object.entries(itemsByCategory).map(([category, items]) => (
           <div key={category} className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4 border-b-2 border-gray-300 pb-2">
+            <h2 className="text-2xl font-semibold mb-4 border-b-2 border-border pb-2 text-foreground">
               {category}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((item) => (
-                <div key={item.menuitemid} className="p-4 border border-gray-200 rounded hover:shadow-md transition-shadow">
+                <div key={item.menuitemid} className="p-4 border border-border rounded hover:shadow-md transition-shadow bg-card">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium">{item.menuitemname}</span>
-                    <span className="text-lg font-bold">${item.price.toFixed(2)}</span>
+                    <span className="text-lg font-medium text-foreground">{item.menuitemname}</span>
+                    <span className="text-lg font-bold text-foreground">${item.price.toFixed(2)}</span>
                   </div>
                 </div>
               ))}

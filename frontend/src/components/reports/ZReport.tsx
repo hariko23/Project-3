@@ -82,7 +82,7 @@ function ZReport() {
             </p>
           )}
           {lastRunDate && (
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Last run: {new Date(lastRunDate).toLocaleString()}
             </p>
           )}
@@ -105,30 +105,30 @@ function ZReport() {
 
           {/* Sales Summary */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="border border-gray-300 p-4 bg-gray-50">
-              <div className="text-xs text-gray-600 mb-1.5">Total Sales</div>
+            <div className="border border-border p-4 bg-muted">
+              <div className="text-xs text-muted-foreground mb-1.5">Total Sales</div>
               <div className="text-2xl font-bold">${reportData.totalSales?.toFixed(2)}</div>
             </div>
-            <div className="border border-gray-300 p-4 bg-gray-50">
-              <div className="text-xs text-gray-600 mb-1.5">Total Orders</div>
+            <div className="border border-border p-4 bg-muted">
+              <div className="text-xs text-muted-foreground mb-1.5">Total Orders</div>
               <div className="text-2xl font-bold">{reportData.totalOrders}</div>
             </div>
-            <div className="border border-gray-300 p-4 bg-gray-50">
-              <div className="text-xs text-gray-600 mb-1.5">Total Cash</div>
+            <div className="border border-border p-4 bg-muted">
+              <div className="text-xs text-muted-foreground mb-1.5">Total Cash</div>
               <div className="text-2xl font-bold">${reportData.totalCash?.toFixed(2)}</div>
             </div>
           </div>
 
           {/* Additional Details */}
-          <div className="border border-gray-300 p-4">
+          <div className="border border-border p-4">
             <h4 className="text-sm font-bold mb-3">Day Summary</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-600">Tax Collected:</p>
+                <p className="text-muted-foreground">Tax Collected:</p>
                 <p className="font-bold">${reportData.taxCollected?.toFixed(2)}</p>
               </div>
               <div>
-                <p className="text-gray-600">Discounts:</p>
+                <p className="text-muted-foreground">Discounts:</p>
                 <p className="font-bold">${reportData.discounts?.toFixed(2)}</p>
               </div>
             </div>

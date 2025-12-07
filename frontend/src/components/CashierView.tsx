@@ -431,7 +431,7 @@ function CashierView() {
   };
 
   return (
-    <div className="bg-white h-screen flex flex-col p-4">
+    <div className="bg-background h-screen flex flex-col p-4">
       {/* Receipt Modal */}
       {showReceipt && receiptData && (
         <Receipt
@@ -444,7 +444,7 @@ function CashierView() {
       )}
       
       {/* Header */}
-      <div className="mb-4 border-b border-gray-300 pb-2.5 shrink-0">
+      <div className="mb-4 border-b border-border pb-2.5 shrink-0">
         <div className="flex items-center justify-between">
           <Button to="/">← Back to Menu</Button>
           <h1 className="text-2xl font-normal m-0">Cashier Order System</h1>
@@ -455,10 +455,10 @@ function CashierView() {
                 <div className="text-sm">
                   <div className="font-bold">{weather.description}</div>
                   <div className="text-lg">{weather.temp}°F</div>
-                  <div className="text-xs text-gray-600">College Station</div>
+                  <div className="text-xs text-muted-foreground">College Station</div>
                 </div>
               ) : (
-                <div className="text-xs text-gray-500">Loading weather...</div>
+                <div className="text-xs text-muted-foreground">Loading weather...</div>
               )}
             </div>
           </div>
@@ -468,7 +468,7 @@ function CashierView() {
       {/* Three Column Layout */}
       <div className="grid grid-cols-[2fr_1fr_1fr] gap-4 flex-1 min-h-0">
         {/* Left Panel - Menu Items */}
-        <div className="border border-gray-300 p-4 flex flex-col min-h-0">
+        <div className="border border-border p-4 flex flex-col min-h-0 bg-card">
           <h2 className="text-base font-normal mt-0 mb-2 shrink-0">Menu Items</h2>
           {loading ? (
             <p>Loading menu items...</p>
@@ -480,7 +480,7 @@ function CashierView() {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="p-1.5 border border-gray-300 text-xs bg-white w-full"
+                  className="p-1.5 border border-border text-xs bg-background text-foreground w-full"
                 >
                   <option value="all">All Categories</option>
                   {categories.map((category) => (
@@ -490,18 +490,18 @@ function CashierView() {
                   ))}
                 </select>
               </div>
-              <div className="border border-gray-300 flex-1 overflow-y-auto mb-2 p-2.5 min-h-0">
+              <div className="border border-border flex-1 overflow-y-auto mb-2 p-2.5 min-h-0">
                 {menuItems
                   .filter(item => selectedCategory === 'all' || item.drinkcategory === selectedCategory)
                   .map((item) => (
                   <div
                     key={item.menuitemid}
-                    className="p-3 border-b border-gray-200"
+                    className="p-3 border-b border-border"
                   >
                     <div className="flex items-center gap-4 mb-2">
                       <div className="flex-1 text-sm">
                         <div>{item.menuitemname}</div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-xs text-muted-foreground">
                           ${(() => {
                             const basePrice = item.price * SIZE_MULTIPLIERS[itemSizes[item.menuitemid] || 'Medium'];
                             const toppingPrice = (itemToppings[item.menuitemid] || []).reduce((sum, toppingId) => {
@@ -518,7 +518,7 @@ function CashierView() {
                           value={itemSizes[item.menuitemid] || 'Medium'}
                           onChange={(e) => updateItemSize(item.menuitemid, e.target.value as DrinkSize)}
                           onClick={(e) => e.stopPropagation()}
-                          className="p-1.5 border border-gray-300 text-xs w-[70px] bg-white"
+                          className="p-1.5 border border-border text-xs w-[70px] bg-background text-foreground"
                         >
                           <option value="Small">S</option>
                           <option value="Medium">M</option>
@@ -529,7 +529,7 @@ function CashierView() {
                           value={itemQuantities[item.menuitemid] || 1}
                           onChange={(e) => updateItemQuantity(item.menuitemid, parseInt(e.target.value))}
                           onClick={(e) => e.stopPropagation()}
-                          className="p-1.5 border border-gray-300 text-xs w-[60px] bg-white"
+                          className="p-1.5 border border-border text-xs w-[60px] bg-background text-foreground"
                         >
                           {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
                             <option key={num} value={num}>{num}</option>
@@ -542,7 +542,7 @@ function CashierView() {
                     </div>
                     {/* Topping Selector */}
                     <div className="ml-0">
-                      <div className="text-xs text-gray-600 mb-1">
+                      <div className="text-xs text-muted-foreground mb-1">
                         Toppings {(itemToppings[item.menuitemid] || []).length > 0 && `(${(itemToppings[item.menuitemid] || []).length})`}:
                       </div>
                       <div className="flex flex-wrap gap-1">
@@ -553,7 +553,7 @@ function CashierView() {
                             className={`px-2 py-1 rounded text-xs transition-colors ${
                               (itemToppings[item.menuitemid] || []).includes(topping.id)
                                 ? 'bg-purple-600 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                             }`}
                           >
                             {topping.name} +${topping.price.toFixed(2)}
@@ -571,12 +571,12 @@ function CashierView() {
         {/* Center Panel - Current Order */}
         <div className="border border-gray-300 p-2.5 flex flex-col min-h-0">
           <h2 className="text-base font-normal mt-0 mb-2 shrink-0">Current Order</h2>
-          <div className="border border-gray-300 flex-1 overflow-y-auto mb-2 p-1.5 min-h-0">
+          <div className="border border-border flex-1 overflow-y-auto mb-2 p-1.5 min-h-0">
             {currentOrder.length === 0 ? (
-              <div className="text-gray-500 p-2.5">No items in order</div>
+              <div className="text-muted-foreground p-2.5">No items in order</div>
             ) : (
               currentOrder.map((item, index) => (
-                <div key={index} className="p-2 border-b border-gray-200">
+                <div key={index} className="p-2 border-b border-border">
                   <div>{item.name} ({item.size})</div>
                   {item.toppings.length > 0 && (
                     <div className="text-xs text-purple-600">
@@ -586,7 +586,7 @@ function CashierView() {
                       }).join(', ')}
                     </div>
                   )}
-                  <div className="text-xs text-gray-600">x{item.quantity} - ${(item.price * item.quantity).toFixed(2)}</div>
+                  <div className="text-xs text-muted-foreground">x{item.quantity} - ${(item.price * item.quantity).toFixed(2)}</div>
                 </div>
               ))
             )}
@@ -600,7 +600,7 @@ function CashierView() {
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full p-2 border border-gray-300 text-sm"
+              className="w-full p-2 border border-border text-sm bg-background text-foreground"
               placeholder="Enter customer name"
             />
           </div>
@@ -624,7 +624,7 @@ function CashierView() {
           </div>
           <div className="flex-1 overflow-y-auto min-h-0">
             {incompleteOrders.length === 0 ? (
-              <div className="text-gray-500 text-sm p-2.5">No uncompleted orders</div>
+              <div className="text-muted-foreground text-sm p-2.5">No uncompleted orders</div>
             ) : (
               incompleteOrders.map((order) => {
                 const isExpanded = expandedOrders.has(order.orderid);
@@ -634,16 +634,16 @@ function CashierView() {
                 const totalCount = items.length;
 
                 return (
-                  <div key={order.orderid} className="border-b border-gray-200 text-xs">
+                  <div key={order.orderid} className="border-b border-border text-xs">
                     <div
-                      className={`p-2 cursor-pointer ${isExpanded ? 'bg-gray-100' : 'bg-transparent'} flex justify-between items-center`}
+                      className={`p-2 cursor-pointer ${isExpanded ? 'bg-accent' : 'bg-transparent'} flex justify-between items-center`}
                       onClick={() => toggleOrderExpansion(order.orderid)}
                     >
                       <div className="flex-1">
                         <div className="font-bold mb-1">Order #{order.orderid}</div>
                         <div>Total: ${Number(order.totalcost).toFixed(2)}</div>
                         {totalCount > 0 && (
-                          <div className="text-gray-600 text-[11px] mt-0.5">
+                          <div className="text-muted-foreground text-[11px] mt-0.5">
                             {completedCount}/{totalCount} drinks completed
                           </div>
                         )}
@@ -651,16 +651,16 @@ function CashierView() {
                           {new Date(order.timeoforder).toLocaleString()}
                         </div>
                       </div>
-                      <div className="text-base text-gray-600">
+                      <div className="text-base text-muted-foreground">
                         {isExpanded ? '▼' : '▶'}
                       </div>
                     </div>
                     {isExpanded && (
-                      <div className="p-2 bg-gray-50 border-t border-gray-200">
+                      <div className="p-2 bg-muted border-t border-border">
                         {isLoading ? (
-                          <div className="text-gray-500 text-[11px] p-1">Loading drinks...</div>
+                          <div className="text-muted-foreground text-[11px] p-1">Loading drinks...</div>
                         ) : items.length === 0 ? (
-                          <div className="text-gray-500 text-[11px] p-1">No items found</div>
+                          <div className="text-muted-foreground text-[11px] p-1">No items found</div>
                         ) : (
                           items.map((item) => (
                             <div
