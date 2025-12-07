@@ -119,6 +119,15 @@ function AttractScreen({ onInteract, seasonalItems }: { onInteract: () => void; 
                       SEASONAL
                     </span>
                   </div>
+                  {item.image_url && (
+                    <div className="mb-4">
+                      <img 
+                        src={item.image_url} 
+                        alt={item.menuitemname}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
                   <div className="flex flex-col text-center">
                     <span className="text-2xl md:text-3xl font-bold text-foreground mb-2">
                       {item.menuitemname}
@@ -625,6 +634,15 @@ function CustomerKioskLayout() {
                     className="bg-card border-2 border-border rounded-xl p-6 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer"
                     onClick={() => addToCart(item)}
                   >
+                    {item.image_url && (
+                      <div className="mb-4">
+                        <img 
+                          src={item.image_url} 
+                          alt={item.menuitemname}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
                     <div className="flex justify-between items-start mb-3">
                       <h3 className="text-2xl font-bold text-foreground">{item.menuitemname}</h3>
                       <div className="text-right">
