@@ -38,7 +38,7 @@ const AVAILABLE_TOPPINGS = [
  * Available ice levels with database-compatible numeric values
  */
 const ICE_LEVELS = [
-  { id: 0, name: 'No Ice' },
+  { id: 1, name: 'No Ice' },
   { id: 25, name: 'Light Ice' },
   { id: 75, name: 'Regular Ice' },
   { id: 100, name: 'Extra Ice' }

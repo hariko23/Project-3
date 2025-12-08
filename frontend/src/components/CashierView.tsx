@@ -45,7 +45,7 @@ const AVAILABLE_TOPPINGS = [
  * Available ice levels with database-compatible numeric values
  */
 const ICE_LEVELS = [
-  { id: 0, name: 'No Ice' },
+  { id: 1, name: 'No Ice' },
   { id: 25, name: 'Light Ice' },
   { id: 75, name: 'Regular Ice' },
   { id: 100, name: 'Extra Ice' }
@@ -202,7 +202,7 @@ function CashierView() {
       const initialQuantities: Record<number, number> = {};
       const initialSizes: Record<number, DrinkSize> = {};
       const initialIceLevels: Record<number, string> = {};
-      const initialSugarLevels: Record<number, string> = {};
+      const initialSugarLevels: Record<number, number> = {};
       const initialIsHot: Record<number, boolean> = {};
       items.forEach(item => {
         initialQuantities[item.menuitemid] = 1;
@@ -276,10 +276,21 @@ function CashierView() {
    * @param menuitemid - Menu item ID
    */
   const toggleItemHot = (menuitemid: number) => {
+    const isCurrentlyHot = itemIsHot[menuitemid] || false;
+    const willBeHot = !isCurrentlyHot;
+    
     setItemIsHot(prev => ({
       ...prev,
-      [menuitemid]: !prev[menuitemid]
+      [menuitemid]: willBeHot
     }));
+    
+    // If making it hot, set ice level to 1 (no ice)
+    if (willBeHot) {
+      setItemIceLevels(prev => ({
+        ...prev,
+        [menuitemid]: 1
+      }));
+    }
   };
 
   /**
@@ -409,9 +420,10 @@ function CashierView() {
     const quantity = itemQuantities[menuItem.menuitemid] || 1;
     const size = itemSizes[menuItem.menuitemid] || 'Medium';
     const toppings = itemToppings[menuItem.menuitemid] || [];
-    const iceLevel = itemIceLevels[menuItem.menuitemid] || 75; // Default to regular ice
-    const sugarLevel = itemSugarLevels[menuItem.menuitemid] || 100; // Default to 100%
     const isHot = itemIsHot[menuItem.menuitemid] || false;
+    // If drink is hot, force ice level to 1 (no ice), otherwise use selected ice level
+    const iceLevel = isHot ? 1 : (itemIceLevels[menuItem.menuitemid] || 75); // Default to regular ice
+    const sugarLevel = itemSugarLevels[menuItem.menuitemid] || 100; // Default to 100%
     const toppingPrice = toppings.reduce((sum, toppingId) => {
       const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
       return sum + (topping?.price || 0);
@@ -736,19 +748,25 @@ function CashierView() {
                       <div>
                         <div className="text-xs text-muted-foreground mb-1">Ice Level:</div>
                         <div className="flex flex-wrap gap-1">
-                          {ICE_LEVELS.map((ice) => (
+                          {ICE_LEVELS.map((ice) => {
+                            const isHot = itemIsHot[item.menuitemid] || false;
+                            const isDisabled = isHot && ice.id > 1; // Disable all ice options except "No Ice" when hot
+                            return (
                             <button
                               key={ice.id}
-                              onClick={() => updateItemIceLevel(item.menuitemid, ice.id)}
+                              onClick={() => !isDisabled && updateItemIceLevel(item.menuitemid, ice.id)}
+                              disabled={isDisabled}
                               className={`px-2 py-1 rounded text-xs transition-colors ${
                                 (itemIceLevels[item.menuitemid] || 75) === ice.id
                                   ? 'bg-blue-600 text-white'
-                                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                                  : isDisabled
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                               }`}
                             >
                               {ice.name}
                             </button>
-                          ))}
+                          )})}
                         </div>
                       </div>
 
