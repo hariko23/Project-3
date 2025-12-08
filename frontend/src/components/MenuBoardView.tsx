@@ -20,6 +20,7 @@ const SEASONAL_MENU_ITEM_IDS = [6, 12, 22, 28]; // Example: Matcha Milk Tea, Pea
 function MenuBoardView() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Identify seasonal menu items
   const seasonalItems = useMemo(() => {
@@ -53,8 +54,9 @@ function MenuBoardView() {
     try {
       const items = await getAllMenuItems();
       setMenuItems(items);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error loading menu items:', err);
+      setError('Failed to load menu items. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -65,6 +67,15 @@ function MenuBoardView() {
       <div className="p-5 text-center bg-background">
         <h1 className="text-2xl font-normal text-foreground">Menu Board</h1>
         <p className="mt-5 text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-5 text-center bg-background">
+        <h1 className="text-2xl font-normal text-foreground">Menu Board</h1>
+        <p className="mt-5 text-red-500">{error}</p>
       </div>
     );
   }
