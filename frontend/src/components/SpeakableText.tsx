@@ -1,11 +1,11 @@
-import { ReactNode } from 'react';
+import { type ReactNode, type ElementType } from 'react';
 import { useTextToSpeech } from '../contexts/TextToSpeechContext';
 
 interface SpeakableTextProps {
   children: ReactNode;
   text?: string;
   className?: string;
-  as?: keyof JSX.IntrinsicElements;
+  as?: ElementType;
 }
 
 /**
