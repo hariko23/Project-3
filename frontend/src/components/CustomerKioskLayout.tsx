@@ -9,6 +9,15 @@ import Receipt from './Receipt';
 import Translator from './Translator';
 
 /**
+ * Weather data structure
+ */
+interface WeatherData {
+  temp: number;
+  description: string;
+  condition: string;
+}
+
+/**
  * Available drink sizes
  */
 type DrinkSize = 'Small' | 'Medium' | 'Large';
@@ -205,6 +214,10 @@ function CustomerKioskLayout() {
     timestamp: string;
   } | null>(null);
   
+  // Weather-related state
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  
   const idleTimerRef = useRef<number | null>(null);
 
   // Identify seasonal menu items
@@ -232,6 +245,7 @@ function CustomerKioskLayout() {
 
   useEffect(() => {
     loadMenuItems();
+    fetchWeather();
   }, []);
 
   /**
@@ -301,6 +315,120 @@ function CustomerKioskLayout() {
       toast.error(`Failed to load menu items: ${errorMessage}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Fetch weather data for temperature-based suggestions
+   */
+  const fetchWeather = async () => {
+    try {
+      // College Station, TX coordinates
+      const lat = 30.6280;
+      const lon = -96.3344;
+      
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Weather fetch failed');
+      }
+      
+      const data = await response.json();
+      
+      // Map weather codes to descriptions
+      const getWeatherDescription = (code: number) => {
+        const weatherCodes: Record<number, string> = {
+          0: 'Clear sky ☀️',
+          1: 'Mainly clear 🌤️',
+          2: 'Partly cloudy ⛅',
+          3: 'Overcast ☁️',
+          45: 'Foggy 🌫️',
+          48: 'Depositing rime fog 🌫️',
+          51: 'Light drizzle 🌦️',
+          53: 'Moderate drizzle 🌦️',
+          55: 'Dense drizzle 🌧️',
+          56: 'Light freezing drizzle 🌨️',
+          57: 'Dense freezing drizzle ❄️',
+          61: 'Slight rain 🌧️',
+          63: 'Moderate rain 🌧️',
+          65: 'Heavy rain 🌧️',
+          66: 'Light freezing rain 🌨️',
+          67: 'Heavy freezing rain ❄️',
+          71: 'Slight snow 🌨️',
+          73: 'Moderate snow ❄️',
+          75: 'Heavy snow ❄️',
+          77: 'Snow grains 🌨️',
+          80: 'Slight rain showers 🌦️',
+          81: 'Moderate rain showers 🌧️',
+          82: 'Violent rain showers 🌧️',
+          85: 'Slight snow showers 🌨️',
+          86: 'Heavy snow showers ❄️',
+          95: 'Thunderstorm ⛈️',
+          96: 'Thunderstorm with slight hail ⛈️',
+          99: 'Thunderstorm with heavy hail ⛈️'
+        };
+        return weatherCodes[code] || 'Unknown weather 🌡️';
+      };
+      
+      const weatherData: WeatherData = {
+        temp: Math.round(data.current.temperature_2m),
+        description: getWeatherDescription(data.current.weather_code),
+        condition: data.current.weather_code < 10 ? 'clear' : 'cloudy'
+      };
+      
+      setWeather(weatherData);
+      
+      // Show suggestion banner for 10 seconds
+      setShowSuggestion(true);
+      const timer = setTimeout(() => setShowSuggestion(false), 10000);
+      return () => clearTimeout(timer);
+      
+    } catch (error) {
+      console.error('Failed to fetch weather:', error);
+    }
+  };
+
+  /**
+   * Get weather-based drink suggestion
+   */
+  const getWeatherSuggestion = () => {
+    if (!weather) return null;
+    
+    if (weather.temp > 65) {
+      // Hot weather - suggest slush
+      const slushItems = menuItems.filter(item => item.drinkcategory === 'Slush');
+      if (slushItems.length > 0) {
+        // Randomly pick a slush for variety
+        const randomSlush = slushItems[Math.floor(Math.random() * slushItems.length)];
+        return {
+          item: randomSlush,
+          reason: `It's ${weather.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
+        };
+      }
+    } else {
+      // Cool weather - suggest Iced Americano
+      const americano = menuItems.find(item => item.menuitemname === 'Iced Americano');
+      if (americano) {
+        return {
+          item: americano,
+          reason: `It's ${weather.temp}°F! Try our energizing ${americano.menuitemname} to warm up your day!`
+        };
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Add suggested weather item to cart
+   */
+  const addSuggestedItem = () => {
+    const suggestion = getWeatherSuggestion();
+    if (suggestion) {
+      addToCart(suggestion.item);
+      setShowSuggestion(false);
+      toast.success(`Added ${suggestion.item.menuitemname} to cart!`);
     }
   };
 
@@ -565,11 +693,70 @@ function CustomerKioskLayout() {
               ← Back to Home
             </Button>
           </Link>
-          <Translator />
+          <div className="flex items-center space-x-4">
+            {weather && (
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <span>{weather.description}</span>
+                <span>{weather.temp}°F</span>
+                <Button 
+                  onClick={() => {
+                    resetIdleTimer();
+                    fetchWeather();
+                  }}
+                  className="p-1 h-8 w-8 bg-blue-100 hover:bg-blue-200 text-blue-600"
+                  title="Refresh weather suggestions"
+                >
+                  🌡️
+                </Button>
+              </div>
+            )}
+            <Translator />
+          </div>
         </div>
         <h1 className="text-4xl font-bold text-center mb-2">Welcome to Boba Shop</h1>
         <p className="text-center text-lg text-muted-foreground">Order your favorite drinks</p>
       </div>
+
+      {/* Weather-based Suggestion Banner */}
+      {showSuggestion && weather && getWeatherSuggestion() && (
+        <div className="mx-6 mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="text-2xl">
+                {weather.temp > 65 ? '🥤' : '☕'}
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-800 mb-1">
+                  Weather-Based Suggestion
+                </h3>
+                <p className="text-blue-700 text-sm">
+                  {getWeatherSuggestion()?.reason}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={() => {
+                  resetIdleTimer();
+                  addSuggestedItem();
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm"
+              >
+                Add to Cart
+              </Button>
+              <Button 
+                onClick={() => {
+                  resetIdleTimer();
+                  setShowSuggestion(false);
+                }}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-2 text-sm"
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex h-[calc(100vh-140px)]">
         {/* Left Panel - Menu Items */}
