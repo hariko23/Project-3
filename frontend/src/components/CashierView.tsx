@@ -89,6 +89,7 @@ function CashierView() {
     total: number;
     timestamp: string;
   } | null>(null);
+  const [showSuggestion, setShowSuggestion] = useState(false);
 
   // Extract unique categories from menu items
   const categories = useMemo(() => {
@@ -100,6 +101,16 @@ function CashierView() {
     loadIncompleteOrders();
     fetchWeather();
   }, []);
+
+  // Show suggestion when weather data loads
+  useEffect(() => {
+    if (weather) {
+      setShowSuggestion(true);
+      // Auto-hide suggestion after 10 seconds
+      const timer = setTimeout(() => setShowSuggestion(false), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [weather]);
 
   /**
    * Fetch weather data for College Station, TX
@@ -272,6 +283,49 @@ function CashierView() {
     } catch (err) {
       console.error('Error marking order item complete:', err);
       toast.error('Failed to update order item status');
+    }
+  };
+
+  /**
+   * Get weather-based drink suggestion
+   * @returns Suggested drink based on temperature
+   */
+  const getWeatherSuggestion = () => {
+    if (!weather) return null;
+    
+    if (weather.temp > 65) {
+      // Hot weather - suggest slush
+      const slushItems = menuItems.filter(item => item.drinkcategory === 'Slush');
+      if (slushItems.length > 0) {
+        // Randomly pick a slush for variety
+        const randomSlush = slushItems[Math.floor(Math.random() * slushItems.length)];
+        return {
+          item: randomSlush,
+          reason: `It's ${weather.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
+        };
+      }
+    } else {
+      // Cool weather - suggest Iced Americano
+      const americano = menuItems.find(item => item.menuitemname === 'Iced Americano');
+      if (americano) {
+        return {
+          item: americano,
+          reason: `It's ${weather.temp}°F! Try our energizing ${americano.menuitemname} to warm up your day!`
+        };
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Add suggested item to order with default settings
+   */
+  const addSuggestedItem = () => {
+    const suggestion = getWeatherSuggestion();
+    if (suggestion) {
+      addToOrder(suggestion.item);
+      setShowSuggestion(false);
+      toast.success(`Added ${suggestion.item.menuitemname} to order!`);
     }
   };
 
@@ -466,6 +520,41 @@ function CashierView() {
         </div>
       </div>
 
+      {/* Weather-based Suggestion Banner */}
+      {showSuggestion && weather && getWeatherSuggestion() && (
+        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="text-2xl">
+                {weather.temp > 65 ? '🥤' : '☕'}
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-800 mb-1">
+                  Weather-Based Suggestion
+                </h3>
+                <p className="text-blue-700 text-sm">
+                  {getWeatherSuggestion()?.reason}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={addSuggestedItem}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm"
+              >
+                Add to Order
+              </Button>
+              <Button 
+                onClick={() => setShowSuggestion(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-2 text-sm"
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Three Column Layout */}
       <div className="grid grid-cols-[2fr_1fr_1fr] gap-4 flex-1 min-h-0">
         {/* Left Panel - Menu Items */}
@@ -571,7 +660,18 @@ function CashierView() {
 
         {/* Center Panel - Current Order */}
         <div className="border border-gray-300 p-2.5 flex flex-col min-h-0">
-          <h2 className="text-base font-normal mt-0 mb-2 shrink-0">Current Order</h2>
+          <div className="flex justify-between items-center mb-2 shrink-0">
+            <h2 className="text-base font-normal mt-0">Current Order</h2>
+            {weather && (
+              <Button 
+                onClick={() => setShowSuggestion(true)}
+                size="sm" 
+                className="text-xs bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                🌡️ Suggest
+              </Button>
+            )}
+          </div>
           <div className="border border-border flex-1 overflow-y-auto mb-2 p-1.5 min-h-0">
             {currentOrder.length === 0 ? (
               <div className="text-muted-foreground p-2.5">No items in order</div>
