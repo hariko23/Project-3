@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getAllMenuItems } from '../api/menuApi';
 import type { MenuItem } from '../api/menuApi';
 import Translator from './Translator';
+import SpeakableText from './SpeakableText';
 
 /**
  * Seasonal menu items configuration
@@ -85,7 +86,9 @@ function MenuBoardView() {
       <div className="flex justify-end mb-4">
         <Translator />
       </div>
-      <h1 className="text-4xl font-bold text-center mb-8">Menu</h1>
+      <h1 className="text-4xl font-bold text-center mb-8">
+        <SpeakableText>Menu</SpeakableText>
+      </h1>
       
       <div className="max-w-6xl mx-auto">
         {/* Seasonal Spotlight Section */}
@@ -95,12 +98,12 @@ function MenuBoardView() {
               <div className="flex items-center justify-center mb-4">
                 <span className="text-4xl mr-3">✨</span>
                 <h2 className="text-3xl font-bold text-white drop-shadow-lg">
-                  Seasonal Specials
+                  <SpeakableText>Seasonal Specials</SpeakableText>
                 </h2>
                 <span className="text-4xl ml-3">✨</span>
               </div>
               <p className="text-center text-white text-lg mb-6 opacity-95">
-                Limited time offers - Try our seasonal favorites!
+                <SpeakableText>Limited time offers - Try our seasonal favorites!</SpeakableText>
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {seasonalItems.map((item) => (
@@ -124,11 +127,15 @@ function MenuBoardView() {
                     )}
                     <div className="flex flex-col">
                       <span className="text-xl font-bold text-foreground mb-1">
-                        {item.menuitemname}
+                        <SpeakableText>{item.menuitemname}</SpeakableText>
                       </span>
-                      <span className="text-sm text-muted-foreground mb-2">{item.drinkcategory}</span>
+                      <span className="text-sm text-muted-foreground mb-2">
+                        <SpeakableText>{item.drinkcategory}</SpeakableText>
+                      </span>
                       <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        ${item.price.toFixed(2)}
+                        <SpeakableText text={`${item.menuitemname} costs $${item.price.toFixed(2)}`}>
+                          ${item.price.toFixed(2)}
+                        </SpeakableText>
                       </span>
                     </div>
                   </div>
@@ -142,7 +149,7 @@ function MenuBoardView() {
         {Object.entries(itemsByCategory).map(([category, items]) => (
           <div key={category} className="mb-8">
             <h2 className="text-2xl font-semibold mb-4 border-b-2 border-border pb-2 text-foreground">
-              {category}
+              <SpeakableText>{category}</SpeakableText>
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((item) => (
@@ -157,8 +164,14 @@ function MenuBoardView() {
                     </div>
                   )}
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-medium text-foreground">{item.menuitemname}</span>
-                    <span className="text-lg font-bold text-foreground">${item.price.toFixed(2)}</span>
+                    <span className="text-lg font-medium text-foreground">
+                      <SpeakableText>{item.menuitemname}</SpeakableText>
+                    </span>
+                    <span className="text-lg font-bold text-foreground">
+                      <SpeakableText text={`${item.menuitemname} costs $${item.price.toFixed(2)}`}>
+                        ${item.price.toFixed(2)}
+                      </SpeakableText>
+                    </span>
                   </div>
                 </div>
               ))}

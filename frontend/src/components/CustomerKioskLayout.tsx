@@ -7,6 +7,7 @@ import { createOrder } from '../api/orderApi';
 import Button from './ui/Button';
 import Receipt from './Receipt';
 import Translator from './Translator';
+import SpeakableText from './SpeakableText';
 
 /**
  * Available drink sizes
@@ -83,13 +84,13 @@ function AttractScreen({ onInteract, seasonalItems }: { onInteract: () => void; 
         <div className="mb-8 animate-pulse">
           <div className="text-8xl mb-6 animate-bounce">🧋</div>
           <h1 className="text-6xl md:text-7xl font-bold mb-4 drop-shadow-lg">
-            Welcome to Boba Shop
+            <SpeakableText>Welcome to Boba Shop</SpeakableText>
           </h1>
           <p className="text-2xl md:text-3xl mb-4 drop-shadow-md">
-            Touch anywhere to start ordering
+            <SpeakableText>Touch anywhere to start ordering</SpeakableText>
           </p>
           <div className="text-xl md:text-2xl opacity-90 drop-shadow-sm">
-            ✨ Fresh drinks made just for you ✨
+            <SpeakableText>✨ Fresh drinks made just for you ✨</SpeakableText>
           </div>
         </div>
 
@@ -99,7 +100,7 @@ function AttractScreen({ onInteract, seasonalItems }: { onInteract: () => void; 
             <div className="flex items-center justify-center mb-6">
               <span className="text-4xl mr-3">⭐</span>
               <h2 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
-                Seasonal Specials
+                <SpeakableText>Seasonal Specials</SpeakableText>
               </h2>
               <span className="text-4xl ml-3">⭐</span>
             </div>
@@ -516,13 +517,17 @@ function CustomerKioskLayout() {
         <div className="flex justify-between items-center mb-4">
           <Link to="/home">
             <Button className="bg-secondary hover:bg-secondary/80 text-secondary-foreground">
-              ← Back to Home
+              <SpeakableText>← Back to Home</SpeakableText>
             </Button>
           </Link>
           <Translator />
         </div>
-        <h1 className="text-4xl font-bold text-center mb-2">Welcome to Boba Shop</h1>
-        <p className="text-center text-lg text-muted-foreground">Order your favorite drinks</p>
+        <h1 className="text-4xl font-bold text-center mb-2">
+          <SpeakableText>Welcome to Boba Shop</SpeakableText>
+        </h1>
+        <p className="text-center text-lg text-muted-foreground">
+          <SpeakableText>Order your favorite drinks</SpeakableText>
+        </p>
       </div>
 
       <div className="flex h-[calc(100vh-140px)]">
@@ -541,7 +546,7 @@ function CustomerKioskLayout() {
                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
-              All
+              <SpeakableText>All</SpeakableText>
             </button>
             {categories.map((category) => (
               <button
@@ -556,7 +561,7 @@ function CustomerKioskLayout() {
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
               >
-                {category}
+                <SpeakableText>{category}</SpeakableText>
               </button>
             ))}
           </div>
@@ -578,9 +583,9 @@ function CustomerKioskLayout() {
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
-                  <div>{size}</div>
+                  <div><SpeakableText>{size}</SpeakableText></div>
                   <div className="text-sm opacity-80">
-                    {size === 'Small' ? '-15%' : size === 'Large' ? '+25%' : 'Base'}
+                    <SpeakableText>{size === 'Small' ? '-15%' : size === 'Large' ? '+25%' : 'Base'}</SpeakableText>
                   </div>
                 </button>
               ))}
@@ -603,8 +608,10 @@ function CustomerKioskLayout() {
                       : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                   }`}
                 >
-                  <div>{topping.name}</div>
-                  <div className="text-xs opacity-80">+${topping.price.toFixed(2)}</div>
+                  <div><SpeakableText>{topping.name}</SpeakableText></div>
+                  <div className="text-xs opacity-80">
+                    <SpeakableText>+${topping.price.toFixed(2)}</SpeakableText>
+                  </div>
                 </button>
               ))}
             </div>
@@ -644,13 +651,23 @@ function CustomerKioskLayout() {
                       </div>
                     )}
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-2xl font-bold text-foreground">{item.menuitemname}</h3>
+                      <h3 className="text-2xl font-bold text-foreground">
+                        <SpeakableText>{item.menuitemname}</SpeakableText>
+                      </h3>
                       <div className="text-right">
-                        <span className="text-xl font-bold text-purple-600">${priceForSize.toFixed(2)}</span>
-                        <div className="text-sm text-muted-foreground">{selectedSize}</div>
+                        <span className="text-xl font-bold text-purple-600">
+                          <SpeakableText text={`${item.menuitemname} costs $${priceForSize.toFixed(2)}`}>
+                            ${priceForSize.toFixed(2)}
+                          </SpeakableText>
+                        </span>
+                        <div className="text-sm text-muted-foreground">
+                          <SpeakableText>{selectedSize}</SpeakableText>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-muted-foreground mb-4">{item.drinkcategory}</p>
+                    <p className="text-muted-foreground mb-4">
+                      <SpeakableText>{item.drinkcategory}</SpeakableText>
+                    </p>
                     <button
                       className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors"
                       onClick={(e) => {
@@ -658,7 +675,7 @@ function CustomerKioskLayout() {
                         addToCart(item);
                       }}
                     >
-                      Add to Cart
+                      <SpeakableText>Add to Cart</SpeakableText>
                     </button>
                   </div>
                 );
@@ -669,7 +686,9 @@ function CustomerKioskLayout() {
 
         {/* Right Panel - Shopping Cart */}
         <div className="w-96 bg-muted border-l-2 border-border p-6 flex flex-col">
-          <h2 className="text-3xl font-bold mb-6 text-foreground">Your Order</h2>
+          <h2 className="text-3xl font-bold mb-6 text-foreground">
+            <SpeakableText>Your Order</SpeakableText>
+          </h2>
 
           {/* Cart Items */}
           <div className="flex-1 overflow-y-auto mb-6">
@@ -711,7 +730,7 @@ function CustomerKioskLayout() {
                                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                               }`}
                             >
-                              {size}
+                              <SpeakableText>{size}</SpeakableText>
                             </button>
                           ))}
                         </div>
@@ -721,7 +740,7 @@ function CustomerKioskLayout() {
                         className="text-red-500 hover:text-red-700 text-xl font-bold ml-2"
                         aria-label="Remove item"
                       >
-                        ×
+                        <SpeakableText text="Remove item">×</SpeakableText>
                       </button>
                     </div>
                     <div className="flex items-center gap-3 mt-3">
@@ -729,14 +748,14 @@ function CustomerKioskLayout() {
                         onClick={() => updateCartQuantity(item.menuitemid, item.size, item.toppings, item.quantity - 1)}
                         className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg flex items-center justify-center"
                       >
-                        −
+                        <SpeakableText text="Decrease quantity">−</SpeakableText>
                       </button>
                       <span className="text-xl font-semibold w-12 text-center">{item.quantity}</span>
                       <button
                         onClick={() => updateCartQuantity(item.menuitemid, item.size, item.toppings, item.quantity + 1)}
                         className="w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-lg flex items-center justify-center"
                       >
-                        +
+                        <SpeakableText text="Increase quantity">+</SpeakableText>
                       </button>
                       <div className="ml-auto text-lg font-bold text-gray-800">
                         ${(item.price * item.quantity).toFixed(2)}
@@ -763,13 +782,13 @@ function CustomerKioskLayout() {
                   onClick={submitOrder}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-xl font-bold"
                 >
-                  Place Order
+                  <SpeakableText>Place Order</SpeakableText>
                 </Button>
                 <Button
                   onClick={clearCart}
                   className="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 text-lg"
                 >
-                  Clear Cart
+                  <SpeakableText>Clear Cart</SpeakableText>
                 </Button>
               </div>
             </>

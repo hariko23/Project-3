@@ -14,6 +14,7 @@ import XReport from './reports/XReport';
 import ZReport from './reports/ZReport';
 import SalesReport from './reports/SalesReport';
 import Translator from './Translator';
+import SpeakableText from './SpeakableText';
 
 /**
  * Available toppings with their prices
@@ -694,9 +695,11 @@ function ManagerView() {
       <div className="bg-card border-b-2 border-purple-200 dark:border-purple-800 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <Button to="/" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium">
-            ← Back to Menu
+            <SpeakableText>← Back to Menu</SpeakableText>
           </Button>
-          <h1 className="text-4xl font-bold text-foreground">Manager Dashboard</h1>
+          <h1 className="text-4xl font-bold text-foreground">
+            <SpeakableText>Manager Dashboard</SpeakableText>
+          </h1>
           <Translator />
         </div>
       </div>
@@ -712,7 +715,7 @@ function ManagerView() {
                 : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
-            Inventory
+            <SpeakableText>Inventory</SpeakableText>
           </button>
           <button
             onClick={() => setActiveTab('menu')}
@@ -722,7 +725,7 @@ function ManagerView() {
                 : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
-            Menu Items
+            <SpeakableText>Menu Items</SpeakableText>
           </button>
           <button
             onClick={() => setActiveTab('analytics')}
@@ -732,7 +735,7 @@ function ManagerView() {
                 : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
-            Analytics
+            <SpeakableText>Analytics</SpeakableText>
           </button>
           <button
             onClick={() => setActiveTab('orders')}
@@ -742,7 +745,7 @@ function ManagerView() {
                 : 'border-b-4 border-transparent text-muted-foreground hover:text-purple-500 dark:hover:text-purple-400'
             }`}
           >
-            Orders
+            <SpeakableText>Orders</SpeakableText>
           </button>
         </div>
       </div>
@@ -760,12 +763,14 @@ function ManagerView() {
           {/* Inventory Tab */}
           {activeTab === 'inventory' && (
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl font-bold mb-6 text-foreground">Inventory Management</h2>
+              <h2 className="text-3xl font-bold mb-6 text-foreground">
+                <SpeakableText>Inventory Management</SpeakableText>
+              </h2>
 
               {/* Add New Item Form */}
               <div className="bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-6 mb-6 shadow-sm">
                 <h3 className="text-xl font-semibold mb-4 text-foreground">
-                  Add New Inventory Item
+                  <SpeakableText>Add New Inventory Item</SpeakableText>
                 </h3>
                 <div className="flex gap-4 items-end">
                   <div className="flex-1">
@@ -793,7 +798,7 @@ function ManagerView() {
                     onClick={handleAddInventory}
                     className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium text-base transition-colors"
                   >
-                    Add Item
+                    <SpeakableText>Add Item</SpeakableText>
                   </Button>
                 </div>
               </div>

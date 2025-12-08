@@ -6,8 +6,10 @@ import CustomerKioskLayout from './components/CustomerKioskLayout';
 import MenuBoardView from './components/MenuBoardView';
 import LoginPage from './components/LoginPage';
 import AccessibilityButton from './components/AccessibilityButton';
+import TextToSpeechButton from './components/TextToSpeechButton';
 import { useAuth, UserButton } from '@clerk/clerk-react';
 import { useTheme } from './contexts/ThemeContext';
+import { TextToSpeechProvider } from './contexts/TextToSpeechContext';
 import ThemeToggle from './components/ThemeToggle';
 import { Toaster } from './components/ui/sonner';
 
@@ -104,9 +106,10 @@ function App() {
   const { theme } = useTheme();
   
   return (
-    <Router>
-      <div className="min-h-screen bg-background text-foreground">
-        <Navigation />
+    <TextToSpeechProvider>
+      <Router>
+        <div className="min-h-screen bg-background text-foreground">
+          <Navigation />
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -154,9 +157,11 @@ function App() {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         <AccessibilityButton />
+        <TextToSpeechButton />
         <Toaster />
       </div>
     </Router>
+    </TextToSpeechProvider>
   );
 }
 

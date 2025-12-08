@@ -7,6 +7,7 @@ import type { OrderResponse, OrderItemDetail } from '../api/orderApi';
 import Button from './ui/Button';
 import Receipt from './Receipt';
 import Translator from './Translator';
+import SpeakableText from './SpeakableText';
 
 /**
  * Available drink sizes
@@ -501,7 +502,9 @@ function CashierView() {
       {/* Header */}
       <div className="mb-4 border-b border-border pb-2.5 shrink-0">
         <div className="flex items-center justify-between">
-          <Button to="/">← Back to Menu</Button>
+          <Button to="/">
+            <SpeakableText>← Back to Menu</SpeakableText>
+          </Button>
           <h1 className="text-2xl font-normal m-0">Cashier Order System</h1>
           <div className="flex items-center gap-4">
             <Translator />
@@ -530,10 +533,10 @@ function CashierView() {
               </div>
               <div>
                 <h3 className="font-semibold text-blue-800 mb-1">
-                  Weather-Based Suggestion
+                  <SpeakableText>Weather-Based Suggestion</SpeakableText>
                 </h3>
                 <p className="text-blue-700 text-sm">
-                  {getWeatherSuggestion()?.reason}
+                  <SpeakableText>{getWeatherSuggestion()?.reason}</SpeakableText>
                 </p>
               </div>
             </div>
@@ -542,13 +545,13 @@ function CashierView() {
                 onClick={addSuggestedItem}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm"
               >
-                Add to Order
+                <SpeakableText>Add to Order</SpeakableText>
               </Button>
               <Button 
                 onClick={() => setShowSuggestion(false)}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-2 text-sm"
               >
-                ✕
+                <SpeakableText>✕</SpeakableText>
               </Button>
             </div>
           </div>
@@ -559,14 +562,18 @@ function CashierView() {
       <div className="grid grid-cols-[2fr_1fr_1fr] gap-4 flex-1 min-h-0">
         {/* Left Panel - Menu Items */}
         <div className="border border-border p-4 flex flex-col min-h-0 bg-card">
-          <h2 className="text-base font-normal mt-0 mb-2 shrink-0">Menu Items</h2>
+          <h2 className="text-base font-normal mt-0 mb-2 shrink-0">
+            <SpeakableText>Menu Items</SpeakableText>
+          </h2>
           {loading ? (
             <p>Loading menu items...</p>
           ) : (
             <>
               {/* Category Filter */}
               <div className="mb-2.5 shrink-0">
-                <label className="text-xs mr-2">Filter by Category:</label>
+                <label className="text-xs mr-2">
+                  <SpeakableText>Filter by Category:</SpeakableText>
+                </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -590,8 +597,16 @@ function CashierView() {
                   >
                     <div className="flex items-center gap-4 mb-2">
                       <div className="flex-1 text-sm">
-                        <div>{item.menuitemname}</div>
+                        <div><SpeakableText>{item.menuitemname}</SpeakableText></div>
                         <div className="text-xs text-muted-foreground">
+                          <SpeakableText text={`${item.menuitemname} costs $${(() => {
+                            const basePrice = item.price * SIZE_MULTIPLIERS[itemSizes[item.menuitemid] || 'Medium'];
+                            const toppingPrice = (itemToppings[item.menuitemid] || []).reduce((sum, toppingId) => {
+                              const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
+                              return sum + (topping?.price || 0);
+                            }, 0);
+                            return (basePrice + toppingPrice).toFixed(2);
+                          })()}`}>
                           ${(() => {
                             const basePrice = item.price * SIZE_MULTIPLIERS[itemSizes[item.menuitemid] || 'Medium'];
                             const toppingPrice = (itemToppings[item.menuitemid] || []).reduce((sum, toppingId) => {
@@ -600,6 +615,7 @@ function CashierView() {
                             }, 0);
                             return (basePrice + toppingPrice).toFixed(2);
                           })()}
+                          </SpeakableText>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -626,7 +642,7 @@ function CashierView() {
                           ))}
                         </select>
                         <Button onClick={() => addToOrder(item)} size="sm" className="text-xs">
-                          Add
+                          <SpeakableText>Add</SpeakableText>
                         </Button>
                       </div>
                     </div>
@@ -646,7 +662,7 @@ function CashierView() {
                                 : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                             }`}
                           >
-                            {topping.name} +${topping.price.toFixed(2)}
+                            <SpeakableText>{topping.name} +${topping.price.toFixed(2)}</SpeakableText>
                           </button>
                         ))}
                       </div>
@@ -661,7 +677,9 @@ function CashierView() {
         {/* Center Panel - Current Order */}
         <div className="border border-gray-300 p-2.5 flex flex-col min-h-0">
           <div className="flex justify-between items-center mb-2 shrink-0">
-            <h2 className="text-base font-normal mt-0">Current Order</h2>
+            <h2 className="text-base font-normal mt-0">
+              <SpeakableText>Current Order</SpeakableText>
+            </h2>
             {weather && (
               <Button 
                 onClick={() => setShowSuggestion(true)}
@@ -707,10 +725,10 @@ function CashierView() {
           </div>
           <div className="grid grid-cols-2 gap-2.5 shrink-0">
             <Button onClick={clearOrder}>
-              Clear Order
+              <SpeakableText>Clear Order</SpeakableText>
             </Button>
             <Button onClick={submitOrder} className="font-bold">
-              Submit Order
+              <SpeakableText>Submit Order</SpeakableText>
             </Button>
           </div>
         </div>
@@ -720,7 +738,7 @@ function CashierView() {
           <div className="flex justify-between items-center mb-2 shrink-0">
             <h2 className="text-base font-normal m-0">Uncompleted Orders</h2>
             <Button onClick={loadIncompleteOrders} size="sm" className="text-xs">
-              Refresh
+              <SpeakableText>Refresh</SpeakableText>
             </Button>
           </div>
           <div className="flex-1 overflow-y-auto min-h-0">
