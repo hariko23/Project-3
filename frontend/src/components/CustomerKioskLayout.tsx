@@ -42,6 +42,27 @@ const AVAILABLE_TOPPINGS = [
 ];
 
 /**
+ * Available ice levels
+ */
+const ICE_LEVELS = [
+  { id: 1, name: 'No Ice' },
+  { id: 25, name: 'Light Ice' },
+  { id: 75, name: 'Regular Ice' },
+  { id: 100, name: 'Extra Ice' }
+];
+
+/**
+ * Available sugar levels
+ */
+const SUGAR_LEVELS = [
+  { id: 0, name: '0%' },
+  { id: 25, name: '25%' },
+  { id: 50, name: '50%' },
+  { id: 75, name: '75%' },
+  { id: 100, name: '100%' }
+];
+
+/**
  * Cart item structure
  */
 interface CartItem {
@@ -52,6 +73,9 @@ interface CartItem {
   quantity: number;
   size: DrinkSize;
   toppings: string[]; // Array of topping IDs
+  iceLevel: number; // Ice level (1, 25, 75, 100)
+  sugarLevel: number; // Sugar level (0, 25, 50, 75, 100)
+  isHot: boolean; // Hot option
 }
 
 /**
@@ -171,6 +195,9 @@ function CustomerKioskLayout() {
   const [isIdle, setIsIdle] = useState(false);
   const [selectedSize, setSelectedSize] = useState<DrinkSize>('Medium');
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const [selectedIceLevel, setSelectedIceLevel] = useState<number>(75); // Default to regular ice
+  const [selectedSugarLevel, setSelectedSugarLevel] = useState<number>(100); // Default to 100%
+  const [selectedIsHot, setSelectedIsHot] = useState<boolean>(false);
   const [receiptData, setReceiptData] = useState<{
     orderNumber: number;
     items: Array<{ name: string; quantity: number; price: number }>;
@@ -285,6 +312,10 @@ function CustomerKioskLayout() {
   const addToCart = (menuItem: MenuItem, size: DrinkSize = selectedSize) => {
     resetIdleTimer(); // Reset idle timer on interaction
     const toppings = [...selectedToppings];
+    const iceLevel = selectedIsHot ? 1 : selectedIceLevel; // Force no ice if hot
+    const sugarLevel = selectedSugarLevel;
+    const isHot = selectedIsHot;
+    
     const toppingPrice = toppings.reduce((sum, toppingId) => {
       const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
       return sum + (topping?.price || 0);
@@ -295,12 +326,18 @@ function CustomerKioskLayout() {
       const existingItem = prevCart.find(
         item => item.menuitemid === menuItem.menuitemid && 
                 item.size === size && 
+                item.iceLevel === iceLevel &&
+                item.sugarLevel === sugarLevel &&
+                item.isHot === isHot &&
                 JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
       );
       if (existingItem) {
         return prevCart.map(item =>
           item.menuitemid === menuItem.menuitemid && 
           item.size === size && 
+          item.iceLevel === iceLevel &&
+          item.sugarLevel === sugarLevel &&
+          item.isHot === isHot &&
           JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -313,12 +350,18 @@ function CustomerKioskLayout() {
         price: price,
         quantity: 1,
         size: size,
-        toppings: toppings
+        toppings: toppings,
+        iceLevel: iceLevel,
+        sugarLevel: sugarLevel,
+        isHot: isHot
       }];
     });
     
-    // Clear topping selection after adding to cart
+    // Clear all customizations after adding to cart (reset to defaults)
     setSelectedToppings([]);
+    setSelectedIceLevel(75); // Reset to regular ice
+    setSelectedSugarLevel(100); // Reset to 100%
+    setSelectedIsHot(false); // Reset hot option
   };
 
   /**
@@ -440,7 +483,10 @@ function CustomerKioskLayout() {
           quantity: item.quantity,
           size: item.size,
           price: item.price,
-          toppings: item.toppings // Send toppings array to backend
+          toppings: item.toppings, // Send toppings array to backend
+          iceLevel: item.iceLevel,
+          sugarLevel: item.sugarLevel,
+          isHot: item.isHot
         }))
       };
 
@@ -619,6 +665,94 @@ function CustomerKioskLayout() {
             )}
           </div>
 
+          {/* Ice Level Selector */}
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Ice Level:</h3>
+            <div className="flex gap-2">
+              {ICE_LEVELS.map((ice) => {
+                const isDisabled = selectedIsHot && ice.id > 1; // Disable all except "No Ice" when hot
+                return (
+                  <button
+                    key={ice.id}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        resetIdleTimer();
+                        setSelectedIceLevel(ice.id);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedIceLevel === ice.id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : isDisabled
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    {ice.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sugar Level Selector */}
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Sugar Level:</h3>
+            <div className="flex gap-2">
+              {SUGAR_LEVELS.map((sugar) => (
+                <button
+                  key={sugar.id}
+                  onClick={() => {
+                    resetIdleTimer();
+                    setSelectedSugarLevel(sugar.id);
+                  }}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedSugarLevel === sugar.id
+                      ? 'bg-orange-600 text-white shadow-md'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {sugar.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hot Option Selector */}
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Temperature:</h3>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  resetIdleTimer();
+                  setSelectedIsHot(false);
+                }}
+                className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                  !selectedIsHot
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                Cold/Iced
+              </button>
+              <button
+                onClick={() => {
+                  resetIdleTimer();
+                  setSelectedIsHot(true);
+                  setSelectedIceLevel(1); // Auto set to "No Ice" when hot
+                }}
+                className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                  selectedIsHot
+                    ? 'bg-red-600 text-white shadow-lg scale-105'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                Hot
+              </button>
+            </div>
+          </div>
+
           {/* Menu Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMenuItems.length === 0 ? (
@@ -690,13 +824,39 @@ function CustomerKioskLayout() {
                       <div className="flex-1">
                         <h4 className="font-bold text-lg text-foreground">{item.name}</h4>
                         <p className="text-muted-foreground text-sm">${item.price.toFixed(2)} each</p>
+                        
+                        {/* Customization Display */}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {/* Ice Level */}
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                            {ICE_LEVELS.find(ice => ice.id === item.iceLevel)?.name || 'Regular Ice'}
+                          </span>
+                          
+                          {/* Sugar Level */}
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-medium">
+                            {SUGAR_LEVELS.find(sugar => sugar.id === item.sugarLevel)?.name || '100%'} Sugar
+                          </span>
+                          
+                          {/* Hot Option */}
+                          {item.isHot && (
+                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium">
+                              HOT
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Toppings */}
                         {item.toppings.length > 0 && (
-                          <p className="text-purple-600 text-xs mt-1">
-                            Toppings: {item.toppings.map(id => {
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.toppings.map(id => {
                               const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
-                              return topping?.name;
-                            }).join(', ')}
-                          </p>
+                              return (
+                                <span key={id} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
+                                  {topping?.name}
+                                </span>
+                              );
+                            })}
+                          </div>
                         )}
                         
                         {/* Size Selector in Cart */}
