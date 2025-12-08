@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const menuController = require('../controllers/menuController');
+const { validate, createMenuItemSchema, idParamSchema } = require('../middleware/validation');
 
 // Menu routes
 // GET /api/menu - Get all menu items
 router.get('/', menuController.getAllMenuItems);
 // POST /api/menu - Add a new menu item
-router.post('/', menuController.addMenuItem);
+router.post('/', validate(createMenuItemSchema), menuController.addMenuItem);
 // PUT /api/menu/:id/price - Update menu item price
 router.put('/:id/price', menuController.updateMenuItemPrice);
 // PUT /api/menu/:id - Update menu item (name, category, price)
