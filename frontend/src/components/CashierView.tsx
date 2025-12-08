@@ -42,6 +42,27 @@ const AVAILABLE_TOPPINGS = [
 ];
 
 /**
+ * Available ice levels
+ */
+const ICE_LEVELS = [
+  { id: 'no', name: 'No Ice' },
+  { id: 'light', name: 'Light Ice' },
+  { id: 'regular', name: 'Regular Ice' },
+  { id: 'extra', name: 'Extra Ice' }
+];
+
+/**
+ * Available sugar levels
+ */
+const SUGAR_LEVELS = [
+  { id: '0', name: '0%' },
+  { id: '25', name: '25%' },
+  { id: '50', name: '50%' },
+  { id: '75', name: '75%' },
+  { id: '100', name: '100%' }
+];
+
+/**
  * Order item structure for the current order being built
  */
 interface OrderItem {
@@ -52,6 +73,9 @@ interface OrderItem {
   price: number;
   size: DrinkSize;
   toppings: string[];
+  iceLevel: string;
+  sugarLevel: string;
+  isHot: boolean;
 }
 
 /**
@@ -73,6 +97,9 @@ function CashierView() {
   const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({});
   const [itemSizes, setItemSizes] = useState<Record<number, DrinkSize>>({});
   const [itemToppings, setItemToppings] = useState<Record<number, string[]>>({});
+  const [itemIceLevels, setItemIceLevels] = useState<Record<number, string>>({});
+  const [itemSugarLevels, setItemSugarLevels] = useState<Record<number, string>>({});
+  const [itemIsHot, setItemIsHot] = useState<Record<number, boolean>>({});
   const [customerName, setCustomerName] = useState('');
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [incompleteOrders, setIncompleteOrders] = useState<OrderResponse[]>([]);
@@ -174,12 +201,21 @@ function CashierView() {
       // Initialize quantities to 1 and sizes to Medium for all items
       const initialQuantities: Record<number, number> = {};
       const initialSizes: Record<number, DrinkSize> = {};
+      const initialIceLevels: Record<number, string> = {};
+      const initialSugarLevels: Record<number, string> = {};
+      const initialIsHot: Record<number, boolean> = {};
       items.forEach(item => {
         initialQuantities[item.menuitemid] = 1;
         initialSizes[item.menuitemid] = 'Medium';
+        initialIceLevels[item.menuitemid] = 'regular';
+        initialSugarLevels[item.menuitemid] = '100';
+        initialIsHot[item.menuitemid] = false;
       });
       setItemQuantities(initialQuantities);
       setItemSizes(initialSizes);
+      setItemIceLevels(initialIceLevels);
+      setItemSugarLevels(initialSugarLevels);
+      setItemIsHot(initialIsHot);
     } catch (err) {
       console.error('Error loading menu items:', err);
     } finally {
@@ -208,6 +244,41 @@ function CashierView() {
     setItemSizes(prev => ({
       ...prev,
       [menuitemid]: size
+    }));
+  };
+
+  /**
+   * Update the ice level for a specific menu item
+   * @param menuitemid - Menu item ID
+   * @param iceLevel - New ice level value
+   */
+  const updateItemIceLevel = (menuitemid: number, iceLevel: string) => {
+    setItemIceLevels(prev => ({
+      ...prev,
+      [menuitemid]: iceLevel
+    }));
+  };
+
+  /**
+   * Update the sugar level for a specific menu item
+   * @param menuitemid - Menu item ID
+   * @param sugarLevel - New sugar level value
+   */
+  const updateItemSugarLevel = (menuitemid: number, sugarLevel: string) => {
+    setItemSugarLevels(prev => ({
+      ...prev,
+      [menuitemid]: sugarLevel
+    }));
+  };
+
+  /**
+   * Toggle hot option for a specific menu item
+   * @param menuitemid - Menu item ID
+   */
+  const toggleItemHot = (menuitemid: number) => {
+    setItemIsHot(prev => ({
+      ...prev,
+      [menuitemid]: !prev[menuitemid]
     }));
   };
 
@@ -338,21 +409,27 @@ function CashierView() {
     const quantity = itemQuantities[menuItem.menuitemid] || 1;
     const size = itemSizes[menuItem.menuitemid] || 'Medium';
     const toppings = itemToppings[menuItem.menuitemid] || [];
+    const iceLevel = itemIceLevels[menuItem.menuitemid] || 'regular';
+    const sugarLevel = itemSugarLevels[menuItem.menuitemid] || '100';
+    const isHot = itemIsHot[menuItem.menuitemid] || false;
     const toppingPrice = toppings.reduce((sum, toppingId) => {
       const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
       return sum + (topping?.price || 0);
     }, 0);
     const price = (menuItem.price * SIZE_MULTIPLIERS[size]) + toppingPrice;
 
-    // Check if item already exists in order with the same size and toppings
+    // Check if item already exists in order with same customizations
     const existingItemIndex = currentOrder.findIndex(
       item => item.menuitemid === menuItem.menuitemid && 
               item.size === size &&
+              item.iceLevel === iceLevel &&
+              item.sugarLevel === sugarLevel &&
+              item.isHot === isHot &&
               JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
     );
 
     if (existingItemIndex >= 0) {
-      // Update quantity if item already exists with same size and toppings
+      // Update quantity if item already exists with same customizations
       const updatedOrder = [...currentOrder];
       updatedOrder[existingItemIndex].quantity += quantity;
       setCurrentOrder(updatedOrder);
@@ -365,13 +442,19 @@ function CashierView() {
         basePrice: menuItem.price,
         price: price,
         size: size,
-        toppings: toppings
+        toppings: toppings,
+        iceLevel: iceLevel,
+        sugarLevel: sugarLevel,
+        isHot: isHot
       };
       setCurrentOrder([...currentOrder, orderItem]);
     }
     
-    // Clear topping selection after adding
+    // Clear customizations after adding (except defaults)
     setItemToppings(prev => ({ ...prev, [menuItem.menuitemid]: [] }));
+    setItemIceLevels(prev => ({ ...prev, [menuItem.menuitemid]: 'regular' }));
+    setItemSugarLevels(prev => ({ ...prev, [menuItem.menuitemid]: '100' }));
+    setItemIsHot(prev => ({ ...prev, [menuItem.menuitemid]: false }));
   };
 
   /**
@@ -440,7 +523,10 @@ function CashierView() {
           quantity: item.quantity,
           size: item.size,
           price: item.price,
-          toppings: item.toppings
+          toppings: item.toppings,
+          iceLevel: item.iceLevel,
+          sugarLevel: item.sugarLevel,
+          isHot: item.isHot
         }))
       };
 
@@ -451,6 +537,18 @@ function CashierView() {
         orderNumber: result.orderid,
         items: currentOrder.map(item => {
           let itemName = `${item.name} (${item.size})`;
+          
+          // Add hot indicator
+          if (item.isHot) {
+            itemName += ' - HOT';
+          }
+          
+          // Add customizations
+          const iceName = ICE_LEVELS.find(ice => ice.id === item.iceLevel)?.name || 'Regular';
+          const sugarName = SUGAR_LEVELS.find(sugar => sugar.id === item.sugarLevel)?.name || '100%';
+          itemName += ` | ${iceName} | ${sugarName} Sugar`;
+          
+          // Add toppings
           if (item.toppings.length > 0) {
             const toppingNames = item.toppings.map(id => {
               const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
@@ -458,6 +556,7 @@ function CashierView() {
             }).join(', ');
             itemName += ` + ${toppingNames}`;
           }
+          
           return {
             name: itemName,
             quantity: item.quantity,
@@ -630,8 +729,68 @@ function CashierView() {
                         </Button>
                       </div>
                     </div>
+                    
+                    {/* Drink Customizations */}
+                    <div className="ml-0 mt-2 space-y-2">
+                      {/* Ice Level */}
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Ice Level:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {ICE_LEVELS.map((ice) => (
+                            <button
+                              key={ice.id}
+                              onClick={() => updateItemIceLevel(item.menuitemid, ice.id)}
+                              className={`px-2 py-1 rounded text-xs transition-colors ${
+                                (itemIceLevels[item.menuitemid] || 'regular') === ice.id
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                              }`}
+                            >
+                              {ice.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Sugar Level */}
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Sugar Level:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {SUGAR_LEVELS.map((sugar) => (
+                            <button
+                              key={sugar.id}
+                              onClick={() => updateItemSugarLevel(item.menuitemid, sugar.id)}
+                              className={`px-2 py-1 rounded text-xs transition-colors ${
+                                (itemSugarLevels[item.menuitemid] || '100') === sugar.id
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                              }`}
+                            >
+                              {sugar.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Hot Option (not available for slushes) */}
+                      {item.drinkcategory !== 'Slush' && (
+                        <div>
+                          <button
+                            onClick={() => toggleItemHot(item.menuitemid)}
+                            className={`px-3 py-1 rounded text-xs transition-colors ${
+                              itemIsHot[item.menuitemid]
+                                ? 'bg-red-600 text-white'
+                                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                            }`}
+                          >
+                            {itemIsHot[item.menuitemid] ? 'Hot' : 'Make it Hot'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Topping Selector */}
-                    <div className="ml-0">
+                    <div className="ml-0 mt-2">
                       <div className="text-xs text-muted-foreground mb-1">
                         Toppings {(itemToppings[item.menuitemid] || []).length > 0 && `(${(itemToppings[item.menuitemid] || []).length})`}:
                       </div>
@@ -678,16 +837,25 @@ function CashierView() {
             ) : (
               currentOrder.map((item, index) => (
                 <div key={index} className="p-2 border-b border-border">
-                  <div>{item.name} ({item.size})</div>
+                  <div>{item.name} ({item.size}){item.isHot ? ' - HOT' : ''}</div>
+                  
+                  {/* Drink Customizations */}
+                  <div className="text-xs text-gray-600 mt-1">
+                    <div>Ice: {ICE_LEVELS.find(ice => ice.id === item.iceLevel)?.name || 'Regular'}</div>
+                    <div>Sugar: {SUGAR_LEVELS.find(sugar => sugar.id === item.sugarLevel)?.name || '100%'}</div>
+                  </div>
+                  
+                  {/* Toppings */}
                   {item.toppings.length > 0 && (
-                    <div className="text-xs text-purple-600">
+                    <div className="text-xs text-purple-600 mt-1">
                       + {item.toppings.map(id => {
                         const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
                         return topping?.name || id;
                       }).join(', ')}
                     </div>
                   )}
-                  <div className="text-xs text-muted-foreground">x{item.quantity} - ${(item.price * item.quantity).toFixed(2)}</div>
+                  
+                  <div className="text-xs text-muted-foreground mt-1">x{item.quantity} - ${(item.price * item.quantity).toFixed(2)}</div>
                 </div>
               ))
             )}
