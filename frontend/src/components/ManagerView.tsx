@@ -35,6 +35,27 @@ const AVAILABLE_TOPPINGS = [
 ];
 
 /**
+ * Available ice levels with database-compatible numeric values
+ */
+const ICE_LEVELS = [
+  { id: 0, name: 'No Ice' },
+  { id: 25, name: 'Light Ice' },
+  { id: 75, name: 'Regular Ice' },
+  { id: 100, name: 'Extra Ice' }
+];
+
+/**
+ * Available sugar levels with database-compatible numeric values
+ */
+const SUGAR_LEVELS = [
+  { id: 0, name: '0%' },
+  { id: 25, name: '25%' },
+  { id: 50, name: '50%' },
+  { id: 75, name: '75%' },
+  { id: 100, name: '100%' }
+];
+
+/**
  * Manager View component
  * Dashboard for managers with four main tabs:
  * - Inventory: View, add, and update raw ingredient inventory items
@@ -1735,7 +1756,7 @@ function ManagerView() {
                                         <tr className="bg-purple-50 dark:bg-gray-800 border-b-2 border-purple-200 dark:border-gray-700">
                                           <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Drink Name</th>
                                           <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Size</th>
-                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Toppings</th>
+                                          <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Customizations</th>
                                           <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Quantity</th>
                                           <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Price</th>
                                           <th className="p-3 text-left text-sm font-bold text-gray-700 dark:text-foreground">Subtotal</th>
@@ -1744,29 +1765,57 @@ function ManagerView() {
                                       <tbody>
                                         {orderItems[order.orderid].map((item) => {
                                           const toppings = item.toppings ? item.toppings.split(',').filter(t => t.trim()) : [];
+                                          
+                                          // Use database column names with fallbacks
+                                          const iceLevelValue = (item as any).icelevel || (item as any).iceLevel || 75;
+                                          const sugarLevelValue = (item as any).sugarlevel || (item as any).sugarLevel || 100;
+                                          const isHot = (item as any).is_hot || (item as any).isHot || false;
+                                          
+                                          const iceLevel = ICE_LEVELS.find(ice => ice.id === iceLevelValue)?.name || 'Regular Ice';
+                                          const sugarLevel = SUGAR_LEVELS.find(sugar => sugar.id === sugarLevelValue)?.name || '100%';
+                                          
                                           return (
                                           <tr key={item.orderitemid} className="border-b border-gray-100 dark:border-gray-700 last:border-0 hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors">
-                                            <td className="p-3 text-sm font-medium text-gray-800 dark:text-foreground">{item.menuitemname}</td>
+                                            <td className="p-3 text-sm font-medium text-gray-800 dark:text-foreground">
+                                              <div className="flex flex-col">
+                                                <span>{item.menuitemname}</span>
+                                                {isHot && (
+                                                  <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded mt-1 w-fit">
+                                                    HOT
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </td>
                                             <td className="p-3 text-sm">
                                               <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium">
                                                 {item.size}
                                               </span>
                                             </td>
                                             <td className="p-3 text-sm">
-                                              {toppings.length > 0 ? (
-                                                <div className="flex flex-wrap gap-1.5">
-                                                  {toppings.map((toppingId, idx) => {
-                                                    const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId.trim());
-                                                    return (
-                                                      <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-medium">
-                                                        {topping?.name || toppingId}
-                                                      </span>
-                                                    );
-                                                  })}
+                                              <div className="space-y-1">
+                                                {/* Ice and Sugar Level */}
+                                                <div className="flex flex-wrap gap-1">
+                                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-medium">
+                                                    {iceLevel}
+                                                  </span>
+                                                  <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-lg text-xs font-medium">
+                                                    {sugarLevel} Sugar
+                                                  </span>
                                                 </div>
-                                              ) : (
-                                                <span className="text-gray-400">None</span>
-                                              )}
+                                                {/* Toppings */}
+                                                {toppings.length > 0 && (
+                                                  <div className="flex flex-wrap gap-1">
+                                                    {toppings.map((toppingId, idx) => {
+                                                      const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId.trim());
+                                                      return (
+                                                        <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-medium">
+                                                          {topping?.name || toppingId}
+                                                        </span>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                )}
+                                              </div>
                                             </td>
                                             <td className="p-3 text-sm font-medium text-gray-700">{item.quantity}</td>
                                             <td className="p-3 text-sm font-semibold text-green-600">${Number(item.price).toFixed(2)}</td>

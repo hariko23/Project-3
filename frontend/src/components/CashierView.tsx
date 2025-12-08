@@ -42,24 +42,24 @@ const AVAILABLE_TOPPINGS = [
 ];
 
 /**
- * Available ice levels
+ * Available ice levels with database-compatible numeric values
  */
 const ICE_LEVELS = [
-  { id: 'no', name: 'No Ice' },
-  { id: 'light', name: 'Light Ice' },
-  { id: 'regular', name: 'Regular Ice' },
-  { id: 'extra', name: 'Extra Ice' }
+  { id: 0, name: 'No Ice' },
+  { id: 25, name: 'Light Ice' },
+  { id: 75, name: 'Regular Ice' },
+  { id: 100, name: 'Extra Ice' }
 ];
 
 /**
- * Available sugar levels
+ * Available sugar levels with database-compatible numeric values
  */
 const SUGAR_LEVELS = [
-  { id: '0', name: '0%' },
-  { id: '25', name: '25%' },
-  { id: '50', name: '50%' },
-  { id: '75', name: '75%' },
-  { id: '100', name: '100%' }
+  { id: 0, name: '0%' },
+  { id: 25, name: '25%' },
+  { id: 50, name: '50%' },
+  { id: 75, name: '75%' },
+  { id: 100, name: '100%' }
 ];
 
 /**
@@ -73,8 +73,8 @@ interface OrderItem {
   price: number;
   size: DrinkSize;
   toppings: string[];
-  iceLevel: string;
-  sugarLevel: string;
+  iceLevel: number;
+  sugarLevel: number;
   isHot: boolean;
 }
 
@@ -97,8 +97,8 @@ function CashierView() {
   const [itemQuantities, setItemQuantities] = useState<Record<number, number>>({});
   const [itemSizes, setItemSizes] = useState<Record<number, DrinkSize>>({});
   const [itemToppings, setItemToppings] = useState<Record<number, string[]>>({});
-  const [itemIceLevels, setItemIceLevels] = useState<Record<number, string>>({});
-  const [itemSugarLevels, setItemSugarLevels] = useState<Record<number, string>>({});
+  const [itemIceLevels, setItemIceLevels] = useState<Record<number, number>>({});
+  const [itemSugarLevels, setItemSugarLevels] = useState<Record<number, number>>({});
   const [itemIsHot, setItemIsHot] = useState<Record<number, boolean>>({});
   const [customerName, setCustomerName] = useState('');
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
@@ -207,8 +207,8 @@ function CashierView() {
       items.forEach(item => {
         initialQuantities[item.menuitemid] = 1;
         initialSizes[item.menuitemid] = 'Medium';
-        initialIceLevels[item.menuitemid] = 'regular';
-        initialSugarLevels[item.menuitemid] = '100';
+        initialIceLevels[item.menuitemid] = 75; // regular ice
+        initialSugarLevels[item.menuitemid] = 100; // 100% sugar
         initialIsHot[item.menuitemid] = false;
       });
       setItemQuantities(initialQuantities);
@@ -250,9 +250,9 @@ function CashierView() {
   /**
    * Update the ice level for a specific menu item
    * @param menuitemid - Menu item ID
-   * @param iceLevel - New ice level value
+   * @param iceLevel - New ice level value (0-100)
    */
-  const updateItemIceLevel = (menuitemid: number, iceLevel: string) => {
+  const updateItemIceLevel = (menuitemid: number, iceLevel: number) => {
     setItemIceLevels(prev => ({
       ...prev,
       [menuitemid]: iceLevel
@@ -262,9 +262,9 @@ function CashierView() {
   /**
    * Update the sugar level for a specific menu item
    * @param menuitemid - Menu item ID
-   * @param sugarLevel - New sugar level value
+   * @param sugarLevel - New sugar level value (0-100)
    */
-  const updateItemSugarLevel = (menuitemid: number, sugarLevel: string) => {
+  const updateItemSugarLevel = (menuitemid: number, sugarLevel: number) => {
     setItemSugarLevels(prev => ({
       ...prev,
       [menuitemid]: sugarLevel
@@ -409,8 +409,8 @@ function CashierView() {
     const quantity = itemQuantities[menuItem.menuitemid] || 1;
     const size = itemSizes[menuItem.menuitemid] || 'Medium';
     const toppings = itemToppings[menuItem.menuitemid] || [];
-    const iceLevel = itemIceLevels[menuItem.menuitemid] || 'regular';
-    const sugarLevel = itemSugarLevels[menuItem.menuitemid] || '100';
+    const iceLevel = itemIceLevels[menuItem.menuitemid] || 75; // Default to regular ice
+    const sugarLevel = itemSugarLevels[menuItem.menuitemid] || 100; // Default to 100%
     const isHot = itemIsHot[menuItem.menuitemid] || false;
     const toppingPrice = toppings.reduce((sum, toppingId) => {
       const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
@@ -452,8 +452,8 @@ function CashierView() {
     
     // Clear customizations after adding (except defaults)
     setItemToppings(prev => ({ ...prev, [menuItem.menuitemid]: [] }));
-    setItemIceLevels(prev => ({ ...prev, [menuItem.menuitemid]: 'regular' }));
-    setItemSugarLevels(prev => ({ ...prev, [menuItem.menuitemid]: '100' }));
+    setItemIceLevels(prev => ({ ...prev, [menuItem.menuitemid]: 75 })); // regular ice
+    setItemSugarLevels(prev => ({ ...prev, [menuItem.menuitemid]: 100 })); // 100% sugar
     setItemIsHot(prev => ({ ...prev, [menuItem.menuitemid]: false }));
   };
 
@@ -741,7 +741,7 @@ function CashierView() {
                               key={ice.id}
                               onClick={() => updateItemIceLevel(item.menuitemid, ice.id)}
                               className={`px-2 py-1 rounded text-xs transition-colors ${
-                                (itemIceLevels[item.menuitemid] || 'regular') === ice.id
+                                (itemIceLevels[item.menuitemid] || 75) === ice.id
                                   ? 'bg-blue-600 text-white'
                                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                               }`}
@@ -761,7 +761,7 @@ function CashierView() {
                               key={sugar.id}
                               onClick={() => updateItemSugarLevel(item.menuitemid, sugar.id)}
                               className={`px-2 py-1 rounded text-xs transition-colors ${
-                                (itemSugarLevels[item.menuitemid] || '100') === sugar.id
+                                (itemSugarLevels[item.menuitemid] || 100) === sugar.id
                                   ? 'bg-green-600 text-white'
                                   : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                               }`}
