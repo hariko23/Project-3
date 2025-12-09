@@ -74,6 +74,14 @@ app.get('/', (req, res) => {
     res.json({ name: 'bobapos', status: 'OK' });
 });
 
+// 404 Handler - must be after all routes
+const { notFoundHandler } = require('./middleware/errorHandler');
+app.use(notFoundHandler);
+
+// Global Error Handler - must be last
+const { errorHandler } = require('./middleware/errorHandler');
+app.use(errorHandler);
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
     await pool.end();
