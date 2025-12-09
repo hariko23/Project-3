@@ -1,20 +1,17 @@
 const pool = require('../config/database');
+const AppError = require('../utils/AppError');
+const asyncHandler = require('../middleware/asyncHandler');
 
 /**
  * Get all orders
  * @route GET /api/orders
  * @returns {Array} Array of all orders sorted by time of order (newest first)
  */
-const getAllOrders = async (req, res) => {
-    try {
-        const query = 'SELECT orderid, timeoforder, customerid, employeeid, totalcost, orderweek, is_complete FROM orders ORDER BY timeoforder DESC';
-        const result = await pool.query(query);
-        res.json({ success: true, data: result.rows });
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-};
+const getAllOrders = asyncHandler(async (req, res) => {
+    const query = 'SELECT orderid, timeoforder, customerid, employeeid, totalcost, orderweek, is_complete FROM orders ORDER BY timeoforder DESC';
+    const result = await pool.query(query);
+    res.json({ success: true, data: result.rows });
+});
 
 /**
  * Create a new order
@@ -33,7 +30,7 @@ const getAllOrders = async (req, res) => {
  * @param {Array} orderItems - Array of order items with menuitemid and quantity
  * @returns {Object} The newly created order
  */
-const createOrder = async (req, res) => {
+const createOrder = asyncHandler(async (req, res) => {
     const client = await pool.connect();
     
     try {
@@ -44,7 +41,8 @@ const createOrder = async (req, res) => {
 
         // Validate that order has items
         if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
-            return res.status(400).json({ success: false, error: 'Order must contain at least one item' });
+            await client.query('ROLLBACK');
+            throw new AppError('Order must contain at least one item', 400);
         }
 
         // Validate inventory availability for all items
@@ -64,10 +62,7 @@ const createOrder = async (req, res) => {
                 
                 if (available < totalRequired) {
                     await client.query('ROLLBACK');
-                    return res.status(400).json({ 
-                        success: false, 
-                        error: `Insufficient inventory for ingredient ID: ${row.ingredientid}` 
-                    });
+                    throw new AppError(`Insufficient inventory for ingredient ID: ${row.ingredientid}`, 400);
                 }
             }
         }
@@ -108,12 +103,11 @@ const createOrder = async (req, res) => {
 
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error('Error creating order:', error);
-        res.status(500).json({ success: false, error: error.message });
+        throw error; // Re-throw to be caught by errorHandler
     } finally {
         client.release();
     }
-};
+});
 
 /**
  * Get all items for a specific order
@@ -121,58 +115,53 @@ const createOrder = async (req, res) => {
  * @param {number} orderId - Order ID (from URL params)
  * @returns {Array} Array of order items with menu item details
  */
-const getOrderItems = async (req, res) => {
-    try {
-        const { orderId } = req.params;
-        console.log('Fetching order items for orderId:', orderId);
-        
-        // Verify order exists before fetching items
-        const orderCheck = await pool.query('SELECT orderid FROM orders WHERE orderid = $1', [orderId]);
-        if (orderCheck.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Order not found' });
-        }
-
-        // Check if is_complete column exists
-        const columnCheck = await pool.query(`
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'orderitems' AND column_name = 'is_complete'
-        `);
-        const hasIsCompleteColumn = columnCheck.rows.length > 0;
-
-        // Query order items - handle case where is_complete might not exist
-        let query;
-        if (hasIsCompleteColumn) {
-            query = `
-                SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, 
-                       COALESCE(oi.is_complete, false) as is_complete,
-                       mi.menuitemname, mi.price
-                FROM orderitems oi
-                INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
-                WHERE oi.orderid = $1
-                ORDER BY oi.orderitemid
-            `;
-        } else {
-            // Fallback query if is_complete column doesn't exist
-            query = `
-                SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, 
-                       false as is_complete,
-                       mi.menuitemname, mi.price
-                FROM orderitems oi
-                INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
-                WHERE oi.orderid = $1
-                ORDER BY oi.orderitemid
-            `;
-        }
-        
-        const result = await pool.query(query, [orderId]);
-        console.log(`Found ${result.rows.length} order items for order ${orderId}`);
-        res.json({ success: true, data: result.rows });
-    } catch (error) {
-        console.error('Error fetching order items:', error);
-        res.status(500).json({ success: false, error: error.message });
+const getOrderItems = asyncHandler(async (req, res) => {
+    const { orderId } = req.params;
+    console.log('Fetching order items for orderId:', orderId);
+    
+    // Verify order exists before fetching items
+    const orderCheck = await pool.query('SELECT orderid FROM orders WHERE orderid = $1', [orderId]);
+    if (orderCheck.rows.length === 0) {
+        throw new AppError('Order not found', 404);
     }
-};
+
+    // Check if is_complete column exists
+    const columnCheck = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'orderitems' AND column_name = 'is_complete'
+    `);
+    const hasIsCompleteColumn = columnCheck.rows.length > 0;
+
+    // Query order items - handle case where is_complete might not exist
+    let query;
+    if (hasIsCompleteColumn) {
+        query = `
+            SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, 
+                   COALESCE(oi.is_complete, false) as is_complete,
+                   mi.menuitemname, mi.price
+            FROM orderitems oi
+            INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
+            WHERE oi.orderid = $1
+            ORDER BY oi.orderitemid
+        `;
+    } else {
+        // Fallback query if is_complete column doesn't exist
+        query = `
+            SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, 
+                   false as is_complete,
+                   mi.menuitemname, mi.price
+            FROM orderitems oi
+            INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
+            WHERE oi.orderid = $1
+            ORDER BY oi.orderitemid
+        `;
+    }
+    
+    const result = await pool.query(query, [orderId]);
+    console.log(`Found ${result.rows.length} order items for order ${orderId}`);
+    res.json({ success: true, data: result.rows });
+});
 
 /**
  * Get a single order item by ID
@@ -180,26 +169,21 @@ const getOrderItems = async (req, res) => {
  * @param {number} orderItemId - Order item ID (from URL params)
  * @returns {Object} Order item with menu item details
  */
-const getOrderItemById = async (req, res) => {
-    try {
-        const { orderItemId } = req.params;
-        // Get order item with menu item details
-        const query = `
-            SELECT oi.*, mi.menuitemname, mi.price
-            FROM orderitems oi
-            INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
-            WHERE oi.orderitemid = $1
-        `;
-        const result = await pool.query(query, [orderItemId]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Order item not found' });
-        }
-        res.json({ success: true, data: result.rows[0] });
-    } catch (error) {
-        console.error('Error fetching order item:', error);
-        res.status(500).json({ success: false, error: error.message });
+const getOrderItemById = asyncHandler(async (req, res) => {
+    const { orderItemId } = req.params;
+    // Get order item with menu item details
+    const query = `
+        SELECT oi.*, mi.menuitemname, mi.price
+        FROM orderitems oi
+        INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
+        WHERE oi.orderitemid = $1
+    `;
+    const result = await pool.query(query, [orderItemId]);
+    if (result.rows.length === 0) {
+        throw new AppError('Order item not found', 404);
     }
-};
+    res.json({ success: true, data: result.rows[0] });
+});
 
 /**
  * Mark an order item as complete or incomplete
@@ -210,7 +194,7 @@ const getOrderItemById = async (req, res) => {
  * @param {boolean} isComplete - Completion status (from request body)
  * @returns {Object} Updated order item
  */
-const markOrderItemComplete = async (req, res) => {
+const markOrderItemComplete = asyncHandler(async (req, res) => {
     const client = await pool.connect();
     
     try {
@@ -225,7 +209,7 @@ const markOrderItemComplete = async (req, res) => {
         
         if (getItemResult.rows.length === 0) {
             await client.query('ROLLBACK');
-            return res.status(404).json({ success: false, error: 'Order item not found' });
+            throw new AppError('Order item not found', 404);
         }
         
         const orderItem = getItemResult.rows[0];
@@ -283,12 +267,11 @@ const markOrderItemComplete = async (req, res) => {
         res.json({ success: true, data: result.rows[0] });
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error('Error updating order item:', error);
-        res.status(500).json({ success: false, error: error.message });
+        throw error; // Re-throw to be caught by errorHandler
     } finally {
         client.release();
     }
-};
+});
 
 /**
  * Update order completion status
@@ -297,30 +280,25 @@ const markOrderItemComplete = async (req, res) => {
  * @param {boolean} is_complete - New completion status (from request body)
  * @returns {Object} Updated order
  */
-const updateOrderStatus = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { is_complete } = req.body;
+const updateOrderStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { is_complete } = req.body;
 
-        // Validate required parameter
-        if (is_complete === undefined) {
-            return res.status(400).json({ success: false, error: 'is_complete is required' });
-        }
-
-        // Update order status
-        const query = 'UPDATE orders SET is_complete = $1 WHERE orderid = $2 RETURNING *';
-        const result = await pool.query(query, [is_complete, id]);
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Order not found' });
-        }
-
-        res.json({ success: true, data: result.rows[0] });
-    } catch (error) {
-        console.error('Error updating order status:', error);
-        res.status(500).json({ success: false, error: error.message });
+    // Validate required parameter
+    if (is_complete === undefined) {
+        throw new AppError('is_complete is required', 400);
     }
-};
+
+    // Update order status
+    const query = 'UPDATE orders SET is_complete = $1 WHERE orderid = $2 RETURNING *';
+    const result = await pool.query(query, [is_complete, id]);
+
+    if (result.rows.length === 0) {
+        throw new AppError('Order not found', 404);
+    }
+
+    res.json({ success: true, data: result.rows[0] });
+});
 
 module.exports = {
     getAllOrders,
