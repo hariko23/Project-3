@@ -9,6 +9,10 @@ export interface OrderItem {
   quantity: number;
   size?: string; // Optional size: Small, Medium, or Large (defaults to Medium)
   price?: number; // Optional price per item (calculated based on size)
+  toppings?: string[]; // Optional array of topping IDs
+  iceLevel?: number; // Optional ice level (0-100)
+  sugarLevel?: number; // Optional sugar level (0-100)
+  isHot?: boolean; // Optional hot option
 }
 
 /**
@@ -52,6 +56,13 @@ export interface OrderItemDetail {
   menuitemname: string;
   price: number;
   toppings?: string; // Optional comma-separated list of topping IDs
+  iceLevel?: number; // Ice level: 0-100 (0=no ice, 25=light, 50=regular, 100=extra)
+  sugarLevel?: number; // Sugar level: 0-100
+  isHot?: boolean; // Whether the drink should be served hot
+  // Database column aliases for compatibility
+  icelevel?: number; // Database column name
+  sugarlevel?: number; // Database column name
+  is_hot?: boolean; // Database column name
 }
 
 /**
