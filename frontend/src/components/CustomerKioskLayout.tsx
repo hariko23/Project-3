@@ -1089,7 +1089,7 @@ function CustomerKioskLayout() {
                       className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors"
                       onClick={() => openCustomizationModal(item)}
                     >
-                      <SpeakableText>Customize & Add</SpeakableText>
+                      <SpeakableText>Add</SpeakableText>
                     </button>
                   </div>
                 );
