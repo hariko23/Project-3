@@ -10,6 +10,15 @@ import Translator from './Translator';
 import SpeakableText from './SpeakableText';
 
 /**
+ * Weather data structure
+ */
+interface WeatherData {
+  temp: number;
+  description: string;
+  condition: string;
+}
+
+/**
  * Available drink sizes
  */
 type DrinkSize = 'Small' | 'Medium' | 'Large';
@@ -43,6 +52,27 @@ const AVAILABLE_TOPPINGS = [
 ];
 
 /**
+ * Available ice levels
+ */
+const ICE_LEVELS = [
+  { id: 1, name: 'No Ice' },
+  { id: 25, name: 'Light Ice' },
+  { id: 75, name: 'Regular Ice' },
+  { id: 100, name: 'Extra Ice' }
+];
+
+/**
+ * Available sugar levels
+ */
+const SUGAR_LEVELS = [
+  { id: 0, name: '0%' },
+  { id: 25, name: '25%' },
+  { id: 50, name: '50%' },
+  { id: 75, name: '75%' },
+  { id: 100, name: '100%' }
+];
+
+/**
  * Cart item structure
  */
 interface CartItem {
@@ -53,6 +83,9 @@ interface CartItem {
   quantity: number;
   size: DrinkSize;
   toppings: string[]; // Array of topping IDs
+  iceLevel: number; // Ice level (1, 25, 75, 100)
+  sugarLevel: number; // Sugar level (0, 25, 50, 75, 100)
+  isHot: boolean; // Hot option
 }
 
 /**
@@ -172,12 +205,19 @@ function CustomerKioskLayout() {
   const [isIdle, setIsIdle] = useState(false);
   const [selectedSize, setSelectedSize] = useState<DrinkSize>('Medium');
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const [selectedIceLevel, setSelectedIceLevel] = useState<number>(75); // Default to regular ice
+  const [selectedSugarLevel, setSelectedSugarLevel] = useState<number>(100); // Default to 100%
+  const [selectedIsHot, setSelectedIsHot] = useState<boolean>(false);
   const [receiptData, setReceiptData] = useState<{
     orderNumber: number;
     items: Array<{ name: string; quantity: number; price: number }>;
     total: number;
     timestamp: string;
   } | null>(null);
+  
+  // Weather-related state
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [showSuggestion, setShowSuggestion] = useState(false);
   
   const idleTimerRef = useRef<number | null>(null);
 
@@ -206,6 +246,7 @@ function CustomerKioskLayout() {
 
   useEffect(() => {
     loadMenuItems();
+    fetchWeather();
   }, []);
 
   /**
@@ -279,6 +320,120 @@ function CustomerKioskLayout() {
   };
 
   /**
+   * Fetch weather data for temperature-based suggestions
+   */
+  const fetchWeather = async () => {
+    try {
+      // College Station, TX coordinates
+      const lat = 30.6280;
+      const lon = -96.3344;
+      
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=fahrenheit`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Weather fetch failed');
+      }
+      
+      const data = await response.json();
+      
+      // Map weather codes to descriptions
+      const getWeatherDescription = (code: number) => {
+        const weatherCodes: Record<number, string> = {
+          0: 'Clear sky ☀️',
+          1: 'Mainly clear 🌤️',
+          2: 'Partly cloudy ⛅',
+          3: 'Overcast ☁️',
+          45: 'Foggy 🌫️',
+          48: 'Depositing rime fog 🌫️',
+          51: 'Light drizzle 🌦️',
+          53: 'Moderate drizzle 🌦️',
+          55: 'Dense drizzle 🌧️',
+          56: 'Light freezing drizzle 🌨️',
+          57: 'Dense freezing drizzle ❄️',
+          61: 'Slight rain 🌧️',
+          63: 'Moderate rain 🌧️',
+          65: 'Heavy rain 🌧️',
+          66: 'Light freezing rain 🌨️',
+          67: 'Heavy freezing rain ❄️',
+          71: 'Slight snow 🌨️',
+          73: 'Moderate snow ❄️',
+          75: 'Heavy snow ❄️',
+          77: 'Snow grains 🌨️',
+          80: 'Slight rain showers 🌦️',
+          81: 'Moderate rain showers 🌧️',
+          82: 'Violent rain showers 🌧️',
+          85: 'Slight snow showers 🌨️',
+          86: 'Heavy snow showers ❄️',
+          95: 'Thunderstorm ⛈️',
+          96: 'Thunderstorm with slight hail ⛈️',
+          99: 'Thunderstorm with heavy hail ⛈️'
+        };
+        return weatherCodes[code] || 'Unknown weather 🌡️';
+      };
+      
+      const weatherData: WeatherData = {
+        temp: Math.round(data.current.temperature_2m),
+        description: getWeatherDescription(data.current.weather_code),
+        condition: data.current.weather_code < 10 ? 'clear' : 'cloudy'
+      };
+      
+      setWeather(weatherData);
+      
+      // Show suggestion banner for 10 seconds
+      setShowSuggestion(true);
+      const timer = setTimeout(() => setShowSuggestion(false), 10000);
+      return () => clearTimeout(timer);
+      
+    } catch (error) {
+      console.error('Failed to fetch weather:', error);
+    }
+  };
+
+  /**
+   * Get weather-based drink suggestion
+   */
+  const getWeatherSuggestion = () => {
+    if (!weather) return null;
+    
+    if (weather.temp > 65) {
+      // Hot weather - suggest slush
+      const slushItems = menuItems.filter(item => item.drinkcategory === 'Slush');
+      if (slushItems.length > 0) {
+        // Randomly pick a slush for variety
+        const randomSlush = slushItems[Math.floor(Math.random() * slushItems.length)];
+        return {
+          item: randomSlush,
+          reason: `It's ${weather.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
+        };
+      }
+    } else {
+      // Cool weather - suggest Iced Americano
+      const americano = menuItems.find(item => item.menuitemname === 'Iced Americano');
+      if (americano) {
+        return {
+          item: americano,
+          reason: `It's ${weather.temp}°F! Try our energizing ${americano.menuitemname} to warm up your day!`
+        };
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Add suggested weather item to cart
+   */
+  const addSuggestedItem = () => {
+    const suggestion = getWeatherSuggestion();
+    if (suggestion) {
+      addToCart(suggestion.item);
+      setShowSuggestion(false);
+      toast.success(`Added ${suggestion.item.menuitemname} to cart!`);
+    }
+  };
+
+  /**
    * Add item to cart
    * @param menuItem - Menu item to add
    * @param size - Size of the drink
@@ -286,6 +441,10 @@ function CustomerKioskLayout() {
   const addToCart = (menuItem: MenuItem, size: DrinkSize = selectedSize) => {
     resetIdleTimer(); // Reset idle timer on interaction
     const toppings = [...selectedToppings];
+    const iceLevel = selectedIsHot ? 1 : selectedIceLevel; // Force no ice if hot
+    const sugarLevel = selectedSugarLevel;
+    const isHot = selectedIsHot;
+    
     const toppingPrice = toppings.reduce((sum, toppingId) => {
       const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
       return sum + (topping?.price || 0);
@@ -296,12 +455,18 @@ function CustomerKioskLayout() {
       const existingItem = prevCart.find(
         item => item.menuitemid === menuItem.menuitemid && 
                 item.size === size && 
+                item.iceLevel === iceLevel &&
+                item.sugarLevel === sugarLevel &&
+                item.isHot === isHot &&
                 JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
       );
       if (existingItem) {
         return prevCart.map(item =>
           item.menuitemid === menuItem.menuitemid && 
           item.size === size && 
+          item.iceLevel === iceLevel &&
+          item.sugarLevel === sugarLevel &&
+          item.isHot === isHot &&
           JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -314,12 +479,18 @@ function CustomerKioskLayout() {
         price: price,
         quantity: 1,
         size: size,
-        toppings: toppings
+        toppings: toppings,
+        iceLevel: iceLevel,
+        sugarLevel: sugarLevel,
+        isHot: isHot
       }];
     });
     
-    // Clear topping selection after adding to cart
+    // Clear all customizations after adding to cart (reset to defaults)
     setSelectedToppings([]);
+    setSelectedIceLevel(75); // Reset to regular ice
+    setSelectedSugarLevel(100); // Reset to 100%
+    setSelectedIsHot(false); // Reset hot option
   };
 
   /**
@@ -441,7 +612,10 @@ function CustomerKioskLayout() {
           quantity: item.quantity,
           size: item.size,
           price: item.price,
-          toppings: item.toppings // Send toppings array to backend
+          toppings: item.toppings, // Send toppings array to backend
+          iceLevel: item.iceLevel,
+          sugarLevel: item.sugarLevel,
+          isHot: item.isHot
         }))
       };
 
@@ -520,7 +694,25 @@ function CustomerKioskLayout() {
               <SpeakableText>← Back to Home</SpeakableText>
             </Button>
           </Link>
-          <Translator />
+          <div className="flex items-center space-x-4">
+            {weather && (
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <span>{weather.description}</span>
+                <span>{weather.temp}°F</span>
+                <Button 
+                  onClick={() => {
+                    resetIdleTimer();
+                    fetchWeather();
+                  }}
+                  className="p-1 h-8 w-8 bg-blue-100 hover:bg-blue-200 text-blue-600"
+                  title="Refresh weather suggestions"
+                >
+                  🌡️
+                </Button>
+              </div>
+            )}
+            <Translator />
+          </div>
         </div>
         <h1 className="text-4xl font-bold text-center mb-2">
           <SpeakableText>Welcome to Boba Shop</SpeakableText>
@@ -529,6 +721,47 @@ function CustomerKioskLayout() {
           <SpeakableText>Order your favorite drinks</SpeakableText>
         </p>
       </div>
+
+      {/* Weather-based Suggestion Banner */}
+      {showSuggestion && weather && getWeatherSuggestion() && (
+        <div className="mx-6 mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="text-2xl">
+                {weather.temp > 65 ? '🥤' : '☕'}
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-800 mb-1">
+                  Weather-Based Suggestion
+                </h3>
+                <p className="text-blue-700 text-sm">
+                  {getWeatherSuggestion()?.reason}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                onClick={() => {
+                  resetIdleTimer();
+                  addSuggestedItem();
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm"
+              >
+                Add to Cart
+              </Button>
+              <Button 
+                onClick={() => {
+                  resetIdleTimer();
+                  setShowSuggestion(false);
+                }}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-2 text-sm"
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex h-[calc(100vh-140px)]">
         {/* Left Panel - Menu Items */}
@@ -626,6 +859,94 @@ function CustomerKioskLayout() {
             )}
           </div>
 
+          {/* Ice Level Selector */}
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Ice Level:</h3>
+            <div className="flex gap-2">
+              {ICE_LEVELS.map((ice) => {
+                const isDisabled = selectedIsHot && ice.id > 1; // Disable all except "No Ice" when hot
+                return (
+                  <button
+                    key={ice.id}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        resetIdleTimer();
+                        setSelectedIceLevel(ice.id);
+                      }
+                    }}
+                    disabled={isDisabled}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedIceLevel === ice.id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : isDisabled
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    {ice.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sugar Level Selector */}
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Sugar Level:</h3>
+            <div className="flex gap-2">
+              {SUGAR_LEVELS.map((sugar) => (
+                <button
+                  key={sugar.id}
+                  onClick={() => {
+                    resetIdleTimer();
+                    setSelectedSugarLevel(sugar.id);
+                  }}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedSugarLevel === sugar.id
+                      ? 'bg-orange-600 text-white shadow-md'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  {sugar.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hot Option Selector */}
+          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">Temperature:</h3>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  resetIdleTimer();
+                  setSelectedIsHot(false);
+                }}
+                className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                  !selectedIsHot
+                    ? 'bg-blue-600 text-white shadow-lg scale-105'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                Cold/Iced
+              </button>
+              <button
+                onClick={() => {
+                  resetIdleTimer();
+                  setSelectedIsHot(true);
+                  setSelectedIceLevel(1); // Auto set to "No Ice" when hot
+                }}
+                className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                  selectedIsHot
+                    ? 'bg-red-600 text-white shadow-lg scale-105'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                }`}
+              >
+                Hot
+              </button>
+            </div>
+          </div>
+
           {/* Menu Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMenuItems.length === 0 ? (
@@ -709,13 +1030,39 @@ function CustomerKioskLayout() {
                       <div className="flex-1">
                         <h4 className="font-bold text-lg text-foreground">{item.name}</h4>
                         <p className="text-muted-foreground text-sm">${item.price.toFixed(2)} each</p>
+                        
+                        {/* Customization Display */}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {/* Ice Level */}
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                            {ICE_LEVELS.find(ice => ice.id === item.iceLevel)?.name || 'Regular Ice'}
+                          </span>
+                          
+                          {/* Sugar Level */}
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-medium">
+                            {SUGAR_LEVELS.find(sugar => sugar.id === item.sugarLevel)?.name || '100%'} Sugar
+                          </span>
+                          
+                          {/* Hot Option */}
+                          {item.isHot && (
+                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium">
+                              HOT
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Toppings */}
                         {item.toppings.length > 0 && (
-                          <p className="text-purple-600 text-xs mt-1">
-                            Toppings: {item.toppings.map(id => {
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {item.toppings.map(id => {
                               const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
-                              return topping?.name;
-                            }).join(', ')}
-                          </p>
+                              return (
+                                <span key={id} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
+                                  {topping?.name}
+                                </span>
+                              );
+                            })}
+                          </div>
                         )}
                         
                         {/* Size Selector in Cart */}

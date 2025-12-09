@@ -3,6 +3,34 @@ const AppError = require('../utils/AppError');
 const asyncHandler = require('../middleware/asyncHandler');
 
 /**
+ * Price multipliers for different drink sizes
+ */
+const SIZE_MULTIPLIERS = {
+    'Small': 0.85,
+    'Medium': 1.0,
+    'Large': 1.25
+};
+
+/**
+ * Available toppings with their prices
+ */
+const TOPPING_PRICES = {
+    'boba': 0.50,
+    'lycheejelly': 0.50,
+    'grassjelly': 0.50,
+    'pudding': 0.75,
+    'aloevera': 0.50,
+    'redbean': 0.75,
+    'coffeejelly': 0.50,
+    'coconutjelly': 0.50,
+    'chiaseeds': 0.50,
+    'taroballs': 0.75,
+    'mangostars': 0.75,
+    'rainbowjelly': 0.50,
+    'crystalboba': 0.75
+};
+
+/**
  * Get all orders
  * @route GET /api/orders
  * @returns {Array} Array of all orders sorted by time of order (newest first)
@@ -88,11 +116,44 @@ const createOrder = asyncHandler(async (req, res) => {
         // Insert order items
         // Lock ID 2 for order item ID generation (different from order ID lock)
         await client.query('SELECT pg_advisory_xact_lock(2)');
-        const itemQuery = 'INSERT INTO orderitems (orderitemid, orderid, menuitemid, quantity, is_complete) VALUES ($1, $2, $3, $4, $5)';
+        const itemQuery = 'INSERT INTO orderitems (orderitemid, orderid, menuitemid, quantity, is_complete, sugarlevel, icelevel, is_hot, size, toppings, price) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
         for (const item of orderItems) {
             const itemIdResult = await client.query('SELECT COALESCE(MAX(orderitemid), 0) + 1 as next_id FROM orderitems');
             const itemId = itemIdResult.rows[0].next_id;
-            await client.query(itemQuery, [itemId, orderId, item.menuitemid, item.quantity, false]);
+            
+            // Get menu item base price
+            const menuItemQuery = 'SELECT price FROM menuitems WHERE menuitemid = $1';
+            const menuItemResult = await client.query(menuItemQuery, [item.menuitemid]);
+            const basePrice = menuItemResult.rows[0]?.price || 0;
+            
+            // Handle customization fields with defaults
+            const sugarLevel = item.sugarLevel !== undefined ? item.sugarLevel : 75; // Default 75%
+            const iceLevel = item.iceLevel !== undefined ? item.iceLevel : 75; // Default regular ice
+            const isHot = item.isHot || false;
+            const size = item.size || 'Medium';
+            const toppingsArray = item.toppings || [];
+            const toppings = Array.isArray(toppingsArray) ? toppingsArray.join(',') : (toppingsArray || '');
+            
+            // Calculate price: base price * size multiplier + topping costs
+            const sizeMultiplier = SIZE_MULTIPLIERS[size] || 1.0;
+            const toppingCost = Array.isArray(toppingsArray) ? toppingsArray.reduce((sum, toppingId) => {
+                return sum + (TOPPING_PRICES[toppingId.trim()] || 0);
+            }, 0) : 0;
+            const calculatedPrice = (basePrice * sizeMultiplier) + toppingCost;
+            
+            await client.query(itemQuery, [
+                itemId, 
+                orderId, 
+                item.menuitemid, 
+                item.quantity, 
+                false,
+                sugarLevel,
+                iceLevel,
+                isHot,
+                size,
+                toppings,
+                calculatedPrice
+            ]);
         }
 
         // Note: Inventory is updated when order items are marked as complete, not when order is created
@@ -139,7 +200,8 @@ const getOrderItems = asyncHandler(async (req, res) => {
         query = `
             SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, 
                    COALESCE(oi.is_complete, false) as is_complete,
-                   mi.menuitemname, mi.price
+                   oi.sugarlevel, oi.icelevel, oi.is_hot, oi.size, oi.toppings,
+                   mi.menuitemname, COALESCE(oi.price, mi.price) as price
             FROM orderitems oi
             INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
             WHERE oi.orderid = $1
@@ -150,7 +212,8 @@ const getOrderItems = asyncHandler(async (req, res) => {
         query = `
             SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, 
                    false as is_complete,
-                   mi.menuitemname, mi.price
+                   oi.sugarlevel, oi.icelevel, oi.is_hot, oi.size, oi.toppings,
+                   mi.menuitemname, COALESCE(oi.price, mi.price) as price
             FROM orderitems oi
             INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
             WHERE oi.orderid = $1
@@ -173,7 +236,9 @@ const getOrderItemById = asyncHandler(async (req, res) => {
     const { orderItemId } = req.params;
     // Get order item with menu item details
     const query = `
-        SELECT oi.*, mi.menuitemname, mi.price
+        SELECT oi.orderitemid, oi.orderid, oi.menuitemid, oi.quantity, oi.is_complete,
+               oi.sugarlevel, oi.icelevel, oi.is_hot, oi.size, oi.toppings,
+               mi.menuitemname, COALESCE(oi.price, mi.price) as price
         FROM orderitems oi
         INNER JOIN menuitems mi ON oi.menuitemid = mi.menuitemid
         WHERE oi.orderitemid = $1
