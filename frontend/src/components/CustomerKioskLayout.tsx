@@ -208,6 +208,8 @@ function CustomerKioskLayout() {
   const [selectedIceLevel, setSelectedIceLevel] = useState<number>(75); // Default to regular ice
   const [selectedSugarLevel, setSelectedSugarLevel] = useState<number>(100); // Default to 100%
   const [selectedIsHot, setSelectedIsHot] = useState<boolean>(false);
+  const [showCustomizationModal, setShowCustomizationModal] = useState(false);
+  const [itemToCustomize, setItemToCustomize] = useState<MenuItem | null>(null);
   const [receiptData, setReceiptData] = useState<{
     orderNumber: number;
     items: Array<{ name: string; quantity: number; price: number }>;
@@ -422,38 +424,115 @@ function CustomerKioskLayout() {
   };
 
   /**
-   * Add suggested weather item to cart
+   * Add suggested weather item to cart with default customizations
    */
   const addSuggestedItem = () => {
     const suggestion = getWeatherSuggestion();
     if (suggestion) {
-      addToCart(suggestion.item);
+      const menuItem = suggestion.item;
+      const size: DrinkSize = 'Medium';
+      const toppings: string[] = [];
+      const iceLevel = 75; // Regular ice
+      const sugarLevel = 100; // 100% sugar
+      const isHot = false;
+      
+      const toppingPrice = toppings.reduce((sum, toppingId) => {
+        const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
+        return sum + (topping?.price || 0);
+      }, 0);
+      const price = (menuItem.price * SIZE_MULTIPLIERS[size]) + toppingPrice;
+      
+      setCart(prevCart => {
+        const existingItem = prevCart.find(
+          item => item.menuitemid === menuItem.menuitemid && 
+                  item.size === size && 
+                  item.iceLevel === iceLevel &&
+                  item.sugarLevel === sugarLevel &&
+                  item.isHot === isHot &&
+                  JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
+        );
+        if (existingItem) {
+          return prevCart.map(item =>
+            item.menuitemid === menuItem.menuitemid && 
+            item.size === size && 
+            item.iceLevel === iceLevel &&
+            item.sugarLevel === sugarLevel &&
+            item.isHot === isHot &&
+            JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        }
+        return [...prevCart, {
+          menuitemid: menuItem.menuitemid,
+          name: menuItem.menuitemname,
+          basePrice: menuItem.price,
+          price: price,
+          quantity: 1,
+          size: size,
+          toppings: toppings,
+          iceLevel: iceLevel,
+          sugarLevel: sugarLevel,
+          isHot: isHot
+        }];
+      });
+      
       setShowSuggestion(false);
-      toast.success(`Added ${suggestion.item.menuitemname} to cart!`);
+      toast.success(`Added ${menuItem.menuitemname} to cart!`);
     }
   };
 
   /**
-   * Add item to cart
-   * @param menuItem - Menu item to add
-   * @param size - Size of the drink
+   * Open customization modal for a menu item
+   * @param menuItem - Menu item to customize
    */
-  const addToCart = (menuItem: MenuItem, size: DrinkSize = selectedSize) => {
-    resetIdleTimer(); // Reset idle timer on interaction
+  const openCustomizationModal = (menuItem: MenuItem) => {
+    resetIdleTimer();
+    setItemToCustomize(menuItem);
+    // Reset to defaults when opening modal
+    setSelectedSize('Medium');
+    setSelectedToppings([]);
+    setSelectedIceLevel(75);
+    setSelectedSugarLevel(100);
+    setSelectedIsHot(false);
+    setShowCustomizationModal(true);
+  };
+
+  /**
+   * Close customization modal and reset state
+   */
+  const closeCustomizationModal = () => {
+    setShowCustomizationModal(false);
+    setItemToCustomize(null);
+    // Reset to defaults
+    setSelectedToppings([]);
+    setSelectedIceLevel(75);
+    setSelectedSugarLevel(100);
+    setSelectedIsHot(false);
+  };
+
+  /**
+   * Add item to cart with current customizations
+   */
+  const addToCartFromModal = () => {
+    if (!itemToCustomize) return;
+    
+    resetIdleTimer();
     const toppings = [...selectedToppings];
     const iceLevel = selectedIsHot ? 1 : selectedIceLevel; // Force no ice if hot
     const sugarLevel = selectedSugarLevel;
     const isHot = selectedIsHot;
+    const size = selectedSize;
     
     const toppingPrice = toppings.reduce((sum, toppingId) => {
       const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
       return sum + (topping?.price || 0);
     }, 0);
-    const price = (menuItem.price * SIZE_MULTIPLIERS[size]) + toppingPrice;
+    const price = (itemToCustomize.price * SIZE_MULTIPLIERS[size]) + toppingPrice;
     
     setCart(prevCart => {
       const existingItem = prevCart.find(
-        item => item.menuitemid === menuItem.menuitemid && 
+        item => item.menuitemid === itemToCustomize.menuitemid && 
                 item.size === size && 
                 item.iceLevel === iceLevel &&
                 item.sugarLevel === sugarLevel &&
@@ -462,7 +541,7 @@ function CustomerKioskLayout() {
       );
       if (existingItem) {
         return prevCart.map(item =>
-          item.menuitemid === menuItem.menuitemid && 
+          item.menuitemid === itemToCustomize.menuitemid && 
           item.size === size && 
           item.iceLevel === iceLevel &&
           item.sugarLevel === sugarLevel &&
@@ -473,9 +552,9 @@ function CustomerKioskLayout() {
         );
       }
       return [...prevCart, {
-        menuitemid: menuItem.menuitemid,
-        name: menuItem.menuitemname,
-        basePrice: menuItem.price,
+        menuitemid: itemToCustomize.menuitemid,
+        name: itemToCustomize.menuitemname,
+        basePrice: itemToCustomize.price,
         price: price,
         quantity: 1,
         size: size,
@@ -486,11 +565,9 @@ function CustomerKioskLayout() {
       }];
     });
     
-    // Clear all customizations after adding to cart (reset to defaults)
-    setSelectedToppings([]);
-    setSelectedIceLevel(75); // Reset to regular ice
-    setSelectedSugarLevel(100); // Reset to 100%
-    setSelectedIsHot(false); // Reset hot option
+    // Close modal and reset customizations
+    closeCustomizationModal();
+    toast.success(`Added ${itemToCustomize.menuitemname} to cart!`);
   };
 
   /**
@@ -686,6 +763,221 @@ function CustomerKioskLayout() {
         />
       )}
 
+      {/* Customization Modal */}
+      {showCustomizationModal && itemToCustomize && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={closeCustomizationModal}
+        >
+          <div 
+            className="bg-card rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-border shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-3xl font-bold text-foreground mb-2">
+                  <SpeakableText>Customize {itemToCustomize.menuitemname}</SpeakableText>
+                </h2>
+                <p className="text-muted-foreground">
+                  <SpeakableText>{itemToCustomize.drinkcategory}</SpeakableText>
+                </p>
+              </div>
+              <button
+                onClick={closeCustomizationModal}
+                className="text-3xl font-bold text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Close modal"
+              >
+                <SpeakableText text="Close">×</SpeakableText>
+              </button>
+            </div>
+
+            {/* Size Selector */}
+            <div className="mb-6 bg-muted border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Select Size:</h3>
+              <div className="flex gap-3">
+                {(['Small', 'Medium', 'Large'] as DrinkSize[]).map((size) => {
+                  const priceForSize = itemToCustomize.price * SIZE_MULTIPLIERS[size];
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => {
+                        resetIdleTimer();
+                        setSelectedSize(size);
+                      }}
+                      className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                        selectedSize === size
+                          ? 'bg-purple-600 text-white shadow-lg scale-105'
+                          : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                      }`}
+                    >
+                      <div><SpeakableText>{size}</SpeakableText></div>
+                      <div className="text-sm opacity-80">
+                        <SpeakableText>${priceForSize.toFixed(2)}</SpeakableText>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Temperature Selector */}
+            <div className="mb-6 bg-muted border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Temperature:</h3>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    resetIdleTimer();
+                    setSelectedIsHot(false);
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                    !selectedIsHot
+                      ? 'bg-blue-600 text-white shadow-lg scale-105'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  <SpeakableText>Cold/Iced</SpeakableText>
+                </button>
+                <button
+                  onClick={() => {
+                    resetIdleTimer();
+                    setSelectedIsHot(true);
+                    setSelectedIceLevel(1); // Auto set to "No Ice" when hot
+                  }}
+                  className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
+                    selectedIsHot
+                      ? 'bg-red-600 text-white shadow-lg scale-105'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  }`}
+                >
+                  <SpeakableText>Hot</SpeakableText>
+                </button>
+              </div>
+            </div>
+
+            {/* Ice Level Selector */}
+            <div className="mb-6 bg-muted border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Ice Level:</h3>
+              <div className="flex gap-2">
+                {ICE_LEVELS.map((ice) => {
+                  const isDisabled = selectedIsHot && ice.id > 1; // Disable all except "No Ice" when hot
+                  return (
+                    <button
+                      key={ice.id}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          resetIdleTimer();
+                          setSelectedIceLevel(ice.id);
+                        }
+                      }}
+                      disabled={isDisabled}
+                      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        selectedIceLevel === ice.id
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : isDisabled
+                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                      }`}
+                    >
+                      <SpeakableText>{ice.name}</SpeakableText>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sugar Level Selector */}
+            <div className="mb-6 bg-muted border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Sugar Level:</h3>
+              <div className="flex gap-2">
+                {SUGAR_LEVELS.map((sugar) => (
+                  <button
+                    key={sugar.id}
+                    onClick={() => {
+                      resetIdleTimer();
+                      setSelectedSugarLevel(sugar.id);
+                    }}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedSugarLevel === sugar.id
+                        ? 'bg-orange-600 text-white shadow-md'
+                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    <SpeakableText>{sugar.name}</SpeakableText>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Topping Selector */}
+            <div className="mb-6 bg-muted border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-foreground">
+                Add Toppings: {selectedToppings.length > 0 && `(${selectedToppings.length} selected)`}
+              </h3>
+              <div className="grid grid-cols-3 gap-2">
+                {AVAILABLE_TOPPINGS.map((topping) => (
+                  <button
+                    key={topping.id}
+                    onClick={() => toggleTopping(topping.id)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedToppings.includes(topping.id)
+                        ? 'bg-purple-600 text-white shadow-md'
+                        : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    }`}
+                  >
+                    <div><SpeakableText>{topping.name}</SpeakableText></div>
+                    <div className="text-xs opacity-80">
+                      <SpeakableText>+${topping.price.toFixed(2)}</SpeakableText>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {selectedToppings.length > 0 && (
+                <div className="mt-3 text-sm text-muted-foreground">
+                  Total toppings: +$
+                  {selectedToppings.reduce((sum, id) => {
+                    const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
+                    return sum + (topping?.price || 0);
+                  }, 0).toFixed(2)}
+                </div>
+              )}
+            </div>
+
+            {/* Price Summary */}
+            <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-300 dark:border-purple-700">
+              <div className="flex justify-between items-center">
+                <span className="text-xl font-semibold text-foreground">Total Price:</span>
+                <span className="text-3xl font-bold text-purple-600">
+                  ${(
+                    (itemToCustomize.price * SIZE_MULTIPLIERS[selectedSize]) +
+                    selectedToppings.reduce((sum, id) => {
+                      const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
+                      return sum + (topping?.price || 0);
+                    }, 0)
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex gap-3">
+              <Button
+                onClick={closeCustomizationModal}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 text-lg"
+              >
+                <SpeakableText>Cancel</SpeakableText>
+              </Button>
+              <Button
+                onClick={addToCartFromModal}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg font-bold"
+              >
+                <SpeakableText>Add to Cart</SpeakableText>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-card border-b-2 border-border text-foreground p-6 shadow-sm">
         <div className="flex justify-between items-center mb-4">
@@ -799,154 +1091,6 @@ function CustomerKioskLayout() {
             ))}
           </div>
 
-          {/* Size Selector */}
-          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Select Size:</h3>
-            <div className="flex gap-3">
-              {(['Small', 'Medium', 'Large'] as DrinkSize[]).map((size) => (
-                <button
-                  key={size}
-                  onClick={() => {
-                    resetIdleTimer();
-                    setSelectedSize(size);
-                  }}
-                  className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
-                    selectedSize === size
-                      ? 'bg-purple-600 text-white shadow-lg scale-105'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-                >
-                  <div><SpeakableText>{size}</SpeakableText></div>
-                  <div className="text-sm opacity-80">
-                    <SpeakableText>{size === 'Small' ? '-15%' : size === 'Large' ? '+25%' : 'Base'}</SpeakableText>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Topping Selector */}
-          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-foreground">
-              Add Toppings: {selectedToppings.length > 0 && `(${selectedToppings.length} selected)`}
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              {AVAILABLE_TOPPINGS.map((topping) => (
-                <button
-                  key={topping.id}
-                  onClick={() => toggleTopping(topping.id)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    selectedToppings.includes(topping.id)
-                      ? 'bg-purple-600 text-white shadow-md'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-                >
-                  <div><SpeakableText>{topping.name}</SpeakableText></div>
-                  <div className="text-xs opacity-80">
-                    <SpeakableText>+${topping.price.toFixed(2)}</SpeakableText>
-                  </div>
-                </button>
-              ))}
-            </div>
-            {selectedToppings.length > 0 && (
-              <div className="mt-3 text-sm text-muted-foreground">
-                Total toppings: +$
-                {selectedToppings.reduce((sum, id) => {
-                  const topping = AVAILABLE_TOPPINGS.find(t => t.id === id);
-                  return sum + (topping?.price || 0);
-                }, 0).toFixed(2)}
-              </div>
-            )}
-          </div>
-
-          {/* Ice Level Selector */}
-          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Ice Level:</h3>
-            <div className="flex gap-2">
-              {ICE_LEVELS.map((ice) => {
-                const isDisabled = selectedIsHot && ice.id > 1; // Disable all except "No Ice" when hot
-                return (
-                  <button
-                    key={ice.id}
-                    onClick={() => {
-                      if (!isDisabled) {
-                        resetIdleTimer();
-                        setSelectedIceLevel(ice.id);
-                      }
-                    }}
-                    disabled={isDisabled}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedIceLevel === ice.id
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : isDisabled
-                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                    }`}
-                  >
-                    {ice.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Sugar Level Selector */}
-          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Sugar Level:</h3>
-            <div className="flex gap-2">
-              {SUGAR_LEVELS.map((sugar) => (
-                <button
-                  key={sugar.id}
-                  onClick={() => {
-                    resetIdleTimer();
-                    setSelectedSugarLevel(sugar.id);
-                  }}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    selectedSugarLevel === sugar.id
-                      ? 'bg-orange-600 text-white shadow-md'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-                >
-                  {sugar.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Hot Option Selector */}
-          <div className="mb-6 bg-card border-2 border-purple-200 dark:border-purple-800 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-foreground">Temperature:</h3>
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  resetIdleTimer();
-                  setSelectedIsHot(false);
-                }}
-                className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
-                  !selectedIsHot
-                    ? 'bg-blue-600 text-white shadow-lg scale-105'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                }`}
-              >
-                Cold/Iced
-              </button>
-              <button
-                onClick={() => {
-                  resetIdleTimer();
-                  setSelectedIsHot(true);
-                  setSelectedIceLevel(1); // Auto set to "No Ice" when hot
-                }}
-                className={`flex-1 px-4 py-3 rounded-lg text-lg font-medium transition-all ${
-                  selectedIsHot
-                    ? 'bg-red-600 text-white shadow-lg scale-105'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                }`}
-              >
-                Hot
-              </button>
-            </div>
-          </div>
-
           {/* Menu Items Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMenuItems.length === 0 ? (
@@ -955,12 +1099,11 @@ function CustomerKioskLayout() {
               </div>
             ) : (
               filteredMenuItems.map((item) => {
-                const priceForSize = item.price * SIZE_MULTIPLIERS[selectedSize];
+                const basePrice = item.price;
                 return (
                   <div
                     key={item.menuitemid}
-                    className="bg-card border-2 border-border rounded-xl p-6 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer"
-                    onClick={() => addToCart(item)}
+                    className="bg-card border-2 border-border rounded-xl p-6 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all"
                   >
                     {item.image_url && (
                       <div className="mb-4">
@@ -977,12 +1120,12 @@ function CustomerKioskLayout() {
                       </h3>
                       <div className="text-right">
                         <span className="text-xl font-bold text-purple-600">
-                          <SpeakableText text={`${item.menuitemname} costs $${priceForSize.toFixed(2)}`}>
-                            ${priceForSize.toFixed(2)}
+                          <SpeakableText text={`${item.menuitemname} starts at $${basePrice.toFixed(2)}`}>
+                            ${basePrice.toFixed(2)}
                           </SpeakableText>
                         </span>
                         <div className="text-sm text-muted-foreground">
-                          <SpeakableText>{selectedSize}</SpeakableText>
+                          <SpeakableText>Base Price</SpeakableText>
                         </div>
                       </div>
                     </div>
@@ -991,12 +1134,9 @@ function CustomerKioskLayout() {
                     </p>
                     <button
                       className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold text-lg hover:bg-purple-700 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(item);
-                      }}
+                      onClick={() => openCustomizationModal(item)}
                     >
-                      <SpeakableText>Add to Cart</SpeakableText>
+                      <SpeakableText>Add</SpeakableText>
                     </button>
                   </div>
                 );
