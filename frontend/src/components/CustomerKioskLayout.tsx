@@ -424,14 +424,61 @@ function CustomerKioskLayout() {
   };
 
   /**
-   * Add suggested weather item to cart
+   * Add suggested weather item to cart with default customizations
    */
   const addSuggestedItem = () => {
     const suggestion = getWeatherSuggestion();
     if (suggestion) {
-      addToCart(suggestion.item);
+      const menuItem = suggestion.item;
+      const size: DrinkSize = 'Medium';
+      const toppings: string[] = [];
+      const iceLevel = 75; // Regular ice
+      const sugarLevel = 100; // 100% sugar
+      const isHot = false;
+      
+      const toppingPrice = toppings.reduce((sum, toppingId) => {
+        const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
+        return sum + (topping?.price || 0);
+      }, 0);
+      const price = (menuItem.price * SIZE_MULTIPLIERS[size]) + toppingPrice;
+      
+      setCart(prevCart => {
+        const existingItem = prevCart.find(
+          item => item.menuitemid === menuItem.menuitemid && 
+                  item.size === size && 
+                  item.iceLevel === iceLevel &&
+                  item.sugarLevel === sugarLevel &&
+                  item.isHot === isHot &&
+                  JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
+        );
+        if (existingItem) {
+          return prevCart.map(item =>
+            item.menuitemid === menuItem.menuitemid && 
+            item.size === size && 
+            item.iceLevel === iceLevel &&
+            item.sugarLevel === sugarLevel &&
+            item.isHot === isHot &&
+            JSON.stringify(item.toppings.sort()) === JSON.stringify(toppings.sort())
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          );
+        }
+        return [...prevCart, {
+          menuitemid: menuItem.menuitemid,
+          name: menuItem.menuitemname,
+          basePrice: menuItem.price,
+          price: price,
+          quantity: 1,
+          size: size,
+          toppings: toppings,
+          iceLevel: iceLevel,
+          sugarLevel: sugarLevel,
+          isHot: isHot
+        }];
+      });
+      
       setShowSuggestion(false);
-      toast.success(`Added ${suggestion.item.menuitemname} to cart!`);
+      toast.success(`Added ${menuItem.menuitemname} to cart!`);
     }
   };
 
