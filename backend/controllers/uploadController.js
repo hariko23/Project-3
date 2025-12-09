@@ -1,6 +1,8 @@
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { Readable } = require('stream');
+const AppError = require('../utils/AppError');
+const asyncHandler = require('../middleware/asyncHandler');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -31,16 +33,13 @@ const upload = multer({
  * @route POST /api/upload
  * @returns {Object} Object with success status and image URL
  */
-const uploadImage = async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'No file uploaded' 
-      });
-    }
+const uploadImage = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new AppError('No file uploaded', 400);
+  }
 
-    // Convert buffer to stream for Cloudinary
+  // Wrap Cloudinary callback in a Promise
+  const uploadPromise = new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: 'boba-menu-items', // Organize images in a folder
@@ -53,20 +52,10 @@ const uploadImage = async (req, res) => {
       },
       (error, result) => {
         if (error) {
-          console.error('Cloudinary upload error:', error);
-          return res.status(500).json({ 
-            success: false, 
-            error: 'Failed to upload image: ' + error.message 
-          });
+          reject(new AppError('Failed to upload image: ' + error.message, 500));
+        } else {
+          resolve(result);
         }
-        
-        res.json({
-          success: true,
-          data: {
-            url: result.secure_url, // HTTPS URL
-            public_id: result.public_id // For future deletion if needed
-          }
-        });
       }
     );
 
@@ -75,15 +64,18 @@ const uploadImage = async (req, res) => {
     bufferStream.push(req.file.buffer);
     bufferStream.push(null);
     bufferStream.pipe(stream);
+  });
 
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
-};
+  const result = await uploadPromise;
+  
+  res.json({
+    success: true,
+    data: {
+      url: result.secure_url, // HTTPS URL
+      public_id: result.public_id // For future deletion if needed
+    }
+  });
+});
 
 module.exports = {
   uploadImage,
