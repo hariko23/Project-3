@@ -202,7 +202,7 @@ function CashierView() {
       // Initialize quantities to 1 and sizes to Medium for all items
       const initialQuantities: Record<number, number> = {};
       const initialSizes: Record<number, DrinkSize> = {};
-      const initialIceLevels: Record<number, string> = {};
+      const initialIceLevels: Record<number, number> = {};
       const initialSugarLevels: Record<number, number> = {};
       const initialIsHot: Record<number, boolean> = {};
       items.forEach(item => {
