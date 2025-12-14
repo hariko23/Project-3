@@ -71,12 +71,11 @@ const getProductUsageChart = async (req, res) => {
         }
 
         const query = `
-            SELECT i.ingredientname, COALESCE(SUM(mii.quantityused * oi.quantity), 0) as totalused
+            SELECT i.ingredientname, COALESCE(SUM(mii.ingredientqty * oi.quantity), 0) as totalused
             FROM inventory i
             LEFT JOIN menuitemingredients mii ON i.ingredientid = mii.ingredientid
             LEFT JOIN orderitems oi ON mii.menuitemid = oi.menuitemid
-            LEFT JOIN orders o ON oi.orderid = o.orderid
-            WHERE DATE(o.timeoforder) BETWEEN $1 AND $2
+            LEFT JOIN orders o ON oi.orderid = o.orderid AND DATE(o.timeoforder) BETWEEN $1 AND $2
             GROUP BY i.ingredientname
             ORDER BY totalused DESC
         `;
