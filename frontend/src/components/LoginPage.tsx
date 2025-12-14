@@ -24,7 +24,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="bg-card p-8 rounded-lg shadow-md max-w-md w-full border border-border">
+      <main className="bg-card p-8 rounded-lg shadow-md max-w-md w-full border border-border">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2 text-foreground">
             <SpeakableText>Boba POS System</SpeakableText>
@@ -41,7 +41,7 @@ function LoginPage() {
             </button>
           </SignInButton>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

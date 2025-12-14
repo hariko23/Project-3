@@ -205,3 +205,5 @@ INSERT INTO menuitemingredients (menuitemingredientid, menuitemid, ingredientid,
 (122, 30, 10, 1), -- Sugar: 1 unit
 (123, 30, 24, 3); -- Ice: 3 units
 
+
+
