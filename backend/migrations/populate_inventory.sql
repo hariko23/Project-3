@@ -47,3 +47,5 @@ INSERT INTO inventory (ingredientid, ingredientname, ingredientcount) VALUES
 (29, 'Coconut Milk', 400),
 (30, 'Condensed Milk', 300);
 
+
+
