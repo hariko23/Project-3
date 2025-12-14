@@ -61,6 +61,7 @@ const getTotalSales = async (req, res) => {
 /**
  * Get product usage (inventory) for a given time window
  * @route GET /api/analytics/product-usage-chart
+ * Logic: Find orders in date range -> get order items -> get menu items -> get ingredients -> sum usage
  */
 const getProductUsageChart = async (req, res) => {
     try {
@@ -70,12 +71,16 @@ const getProductUsageChart = async (req, res) => {
             return res.status(400).json({ success: false, error: 'startDate and endDate required' });
         }
 
+        // Start with orders in the date range, then trace through to ingredients
         const query = `
-            SELECT i.ingredientname, COALESCE(SUM(mii.ingredientqty * oi.quantity), 0) as totalused
-            FROM inventory i
-            LEFT JOIN menuitemingredients mii ON i.ingredientid = mii.ingredientid
-            LEFT JOIN orderitems oi ON mii.menuitemid = oi.menuitemid
-            LEFT JOIN orders o ON oi.orderid = o.orderid AND DATE(o.timeoforder) BETWEEN $1 AND $2
+            SELECT 
+                i.ingredientname, 
+                COALESCE(SUM(mii.ingredientqty * oi.quantity), 0) as totalused
+            FROM orders o
+            INNER JOIN orderitems oi ON o.orderid = oi.orderid
+            INNER JOIN menuitemingredients mii ON oi.menuitemid = mii.menuitemid
+            INNER JOIN inventory i ON mii.ingredientid = i.ingredientid
+            WHERE DATE(o.timeoforder) BETWEEN $1 AND $2
             GROUP BY i.ingredientname
             ORDER BY totalused DESC
         `;
@@ -250,8 +255,7 @@ const getSalesReport = async (req, res) => {
                 COALESCE(SUM(oi.quantity * m.price), 0) as totalsales
             FROM menuitems m
             LEFT JOIN orderitems oi ON m.menuitemid = oi.menuitemid
-            LEFT JOIN orders o ON oi.orderid = o.orderid
-            WHERE DATE(o.timeoforder) BETWEEN $1 AND $2
+            LEFT JOIN orders o ON oi.orderid = o.orderid AND DATE(o.timeoforder) BETWEEN $1 AND $2
             GROUP BY m.menuitemid, m.menuitemname
             HAVING SUM(oi.quantity) > 0
             ORDER BY totalsales DESC
