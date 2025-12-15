@@ -10,9 +10,11 @@ interface AccessibilityContextType {
   textSize: TextSize;
   setTextSize: (size: TextSize) => void;
   getTextSizeClass: (baseClass?: string) => string;
+  isHighContrast: boolean;
+  setIsHighContrast: (enabled: boolean) => void;
 }
 
-const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
+export const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
 
 /**
  * Accessibility Provider component
@@ -25,6 +27,12 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     return (saved as TextSize) || 'normal';
   });
 
+  const [isHighContrast, setIsHighContrast] = useState<boolean>(() => {
+    // Load from localStorage if available
+    const saved = localStorage.getItem('isHighContrast');
+    return saved === 'true';
+  });
+
   // Apply text size class to body element
   useEffect(() => {
     document.body.classList.remove('accessibility-large', 'accessibility-xlarge');
@@ -34,6 +42,16 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       document.body.classList.add('accessibility-xlarge');
     }
   }, [textSize]);
+
+  // Apply high contrast mode
+  useEffect(() => {
+    if (isHighContrast) {
+      document.body.classList.add('high-contrast');
+    } else {
+      document.body.classList.remove('high-contrast');
+    }
+    localStorage.setItem('isHighContrast', isHighContrast.toString());
+  }, [isHighContrast]);
 
   const updateTextSize = (size: TextSize) => {
     setTextSize(size);
@@ -57,7 +75,13 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AccessibilityContext.Provider value={{ textSize, setTextSize: updateTextSize, getTextSizeClass }}>
+    <AccessibilityContext.Provider value={{ 
+      textSize, 
+      setTextSize: updateTextSize, 
+      getTextSizeClass, 
+      isHighContrast, 
+      setIsHighContrast 
+    }}>
       {children}
     </AccessibilityContext.Provider>
   );

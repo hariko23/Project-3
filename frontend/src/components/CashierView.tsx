@@ -118,6 +118,7 @@ function CashierView() {
     timestamp: string;
   } | null>(null);
   const [showSuggestion, setShowSuggestion] = useState(false);
+  const [currentSuggestion, setCurrentSuggestion] = useState<{item: MenuItem, reason: string} | null>(null);
 
   // Extract unique categories from menu items
   const categories = useMemo(() => {
@@ -180,14 +181,56 @@ function CashierView() {
       };
       
       const weatherCode = data.current.weather_code;
-      setWeather({
+      const weatherData = {
         temp: Math.round(data.current.temperature_2m),
         description: weatherDescriptions[weatherCode] || '🌡️ Unknown',
         icon: ''
-      });
+      };
+      setWeather(weatherData);
+      
+      // Generate and cache the suggestion
+      const suggestion = generateWeatherSuggestion(weatherData, menuItems);
+      setCurrentSuggestion(suggestion);
+      
+      // Show suggestion banner for 10 seconds
+      if (suggestion) {
+        setShowSuggestion(true);
+        const timer = setTimeout(() => setShowSuggestion(false), 10000);
+        return () => clearTimeout(timer);
+      }
     } catch (err) {
       console.error('Error fetching weather:', err);
     }
+  };
+
+  /**
+   * Generate weather-based drink suggestion (called once per weather fetch)
+   */
+  const generateWeatherSuggestion = (weatherData: any, items: MenuItem[]) => {
+    if (weatherData.temp > 65) {
+      // Hot weather - suggest slush
+      const slushItems = items.filter(item => item.drinkcategory === 'Slush');
+      if (slushItems.length > 0) {
+        // Randomly pick a slush for variety
+        const randomSlush = slushItems[Math.floor(Math.random() * slushItems.length)];
+        return {
+          item: randomSlush,
+          reason: `It's ${weatherData.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
+        };
+      }
+    } else {
+      // Cool weather - suggest hot drinks (non-slush items)
+      const hotDrinks = items.filter(item => item.drinkcategory !== 'Slush');
+      if (hotDrinks.length > 0) {
+        // Randomly pick a hot drink for variety
+        const randomHotDrink = hotDrinks[Math.floor(Math.random() * hotDrinks.length)];
+        return {
+          item: randomHotDrink,
+          reason: `It's ${weatherData.temp}°F! Warm up with a hot ${randomHotDrink.menuitemname}!`
+        };
+      }
+    }
+    return null;
   };
 
   /**
@@ -370,42 +413,23 @@ function CashierView() {
   };
 
   /**
-   * Get weather-based drink suggestion
-   * @returns Suggested drink based on temperature
+   * Get weather-based drink suggestion (returns cached suggestion)
    */
   const getWeatherSuggestion = () => {
-    if (!weather) return null;
-    
-    if (weather.temp > 65) {
-      // Hot weather - suggest slush
-      const slushItems = menuItems.filter(item => item.drinkcategory === 'Slush');
-      if (slushItems.length > 0) {
-        // Randomly pick a slush for variety
-        const randomSlush = slushItems[Math.floor(Math.random() * slushItems.length)];
-        return {
-          item: randomSlush,
-          reason: `It's ${weather.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
-        };
-      }
-    } else {
-      // Cool weather - suggest Iced Americano
-      const americano = menuItems.find(item => item.menuitemname === 'Iced Americano');
-      if (americano) {
-        return {
-          item: americano,
-          reason: `It's ${weather.temp}°F! Try our energizing ${americano.menuitemname} to warm up your day!`
-        };
-      }
-    }
-    return null;
+    return currentSuggestion;
   };
 
   /**
    * Add suggested item to order with default settings
    */
   const addSuggestedItem = () => {
-    const suggestion = getWeatherSuggestion();
+    const suggestion = currentSuggestion; // Use cached suggestion directly
     if (suggestion) {
+      // Set hot option if cold weather and not a slush
+      if (weather && weather.temp <= 65 && suggestion.item.drinkcategory !== 'Slush') {
+        setItemIsHot(prev => ({ ...prev, [suggestion.item.menuitemid]: true }));
+        setItemIceLevels(prev => ({ ...prev, [suggestion.item.menuitemid]: 1 })); // No ice for hot drinks
+      }
       addToOrder(suggestion.item);
       setShowSuggestion(false);
       toast.success(`Added ${suggestion.item.menuitemname} to order!`);
@@ -859,7 +883,14 @@ function CashierView() {
             </h2>
             {weather && (
               <Button 
-                onClick={() => setShowSuggestion(true)}
+                onClick={() => {
+                  // Always generate a fresh suggestion when manually requested
+                  if (weather) {
+                    const suggestion = generateWeatherSuggestion(weather, menuItems);
+                    setCurrentSuggestion(suggestion);
+                  }
+                  setShowSuggestion(true);
+                }}
                 size="sm" 
                 className="text-xs bg-blue-500 hover:bg-blue-600 text-white"
               >

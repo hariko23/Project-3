@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getAllMenuItems } from '../api/menuApi';
@@ -7,7 +7,10 @@ import { createOrder } from '../api/orderApi';
 import Button from './ui/Button';
 import Receipt from './Receipt';
 import Translator from './Translator';
+import { AccessibilityContext } from '../contexts/AccessibilityContext';
 import SpeakableText from './SpeakableText';
+import AccessibilityButton from './AccessibilityButton';
+import ThemeToggle from './ThemeToggle';
 
 /**
  * Weather data structure
@@ -95,7 +98,8 @@ const IDLE_TIMEOUT = 30000;
 
 /**
  * Seasonal menu items configuration
- * Same as MenuBoardView - update this to change seasonal items
+ * Hardcoded seasonal drinks: Matcha Milk Tea, Peach Oolong Tea, Peach Slush, Tiger Sugar Milk
+ * Update this to change seasonal items
  */
 const SEASONAL_MENU_ITEM_IDS = [6, 12, 22, 28]; // Matcha Milk Tea, Peach Oolong Tea, Peach Slush, Tiger Sugar Milk
 
@@ -197,6 +201,7 @@ function AttractScreen({ onInteract, seasonalItems }: { onInteract: () => void; 
  * - Idle timeout with attract screen
  */
 function CustomerKioskLayout() {
+  const { isHighContrast } = useContext(AccessibilityContext);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -220,6 +225,7 @@ function CustomerKioskLayout() {
   // Weather-related state
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [showSuggestion, setShowSuggestion] = useState(false);
+  const [currentSuggestion, setCurrentSuggestion] = useState<{item: MenuItem, reason: string} | null>(null);
   
   const idleTimerRef = useRef<number | null>(null);
 
@@ -237,9 +243,12 @@ function CustomerKioskLayout() {
   const filteredMenuItems = useMemo(() => {
     if (selectedCategory === 'all') {
       return menuItems;
+    } else if (selectedCategory === 'seasonal') {
+      // Show hardcoded seasonal items
+      return seasonalItems;
     }
     return menuItems.filter(item => item.drinkcategory === selectedCategory);
-  }, [menuItems, selectedCategory]);
+  }, [menuItems, selectedCategory, seasonalItems]);
 
   // Calculate cart total
   const cartTotal = useMemo(() => {
@@ -383,10 +392,16 @@ function CustomerKioskLayout() {
       
       setWeather(weatherData);
       
+      // Generate and cache the suggestion
+      const suggestion = generateWeatherSuggestion(weatherData, menuItems);
+      setCurrentSuggestion(suggestion);
+      
       // Show suggestion banner for 10 seconds
-      setShowSuggestion(true);
-      const timer = setTimeout(() => setShowSuggestion(false), 10000);
-      return () => clearTimeout(timer);
+      if (suggestion) {
+        setShowSuggestion(true);
+        const timer = setTimeout(() => setShowSuggestion(false), 10000);
+        return () => clearTimeout(timer);
+      }
       
     } catch (error) {
       console.error('Failed to fetch weather:', error);
@@ -394,29 +409,29 @@ function CustomerKioskLayout() {
   };
 
   /**
-   * Get weather-based drink suggestion
+   * Generate weather-based drink suggestion (called once per weather fetch)
    */
-  const getWeatherSuggestion = () => {
-    if (!weather) return null;
-    
-    if (weather.temp > 65) {
+  const generateWeatherSuggestion = (weatherData: WeatherData, items: MenuItem[]) => {
+    if (weatherData.temp > 65) {
       // Hot weather - suggest slush
-      const slushItems = menuItems.filter(item => item.drinkcategory === 'Slush');
+      const slushItems = items.filter(item => item.drinkcategory === 'Slush');
       if (slushItems.length > 0) {
         // Randomly pick a slush for variety
         const randomSlush = slushItems[Math.floor(Math.random() * slushItems.length)];
         return {
           item: randomSlush,
-          reason: `It's ${weather.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
+          reason: `It's ${weatherData.temp}°F! Perfect weather for a refreshing ${randomSlush.menuitemname}!`
         };
       }
     } else {
-      // Cool weather - suggest Iced Americano
-      const americano = menuItems.find(item => item.menuitemname === 'Iced Americano');
-      if (americano) {
+      // Cool weather - suggest hot drinks (non-slush items)
+      const hotDrinks = items.filter(item => item.drinkcategory !== 'Slush');
+      if (hotDrinks.length > 0) {
+        // Randomly pick a hot drink for variety
+        const randomHotDrink = hotDrinks[Math.floor(Math.random() * hotDrinks.length)];
         return {
-          item: americano,
-          reason: `It's ${weather.temp}°F! Try our energizing ${americano.menuitemname} to warm up your day!`
+          item: randomHotDrink,
+          reason: `It's ${weatherData.temp}°F! Warm up with a hot ${randomHotDrink.menuitemname}!`
         };
       }
     }
@@ -424,17 +439,25 @@ function CustomerKioskLayout() {
   };
 
   /**
+   * Get weather-based drink suggestion (returns cached suggestion)
+   */
+  const getWeatherSuggestion = () => {
+    return currentSuggestion;
+  };
+
+  /**
    * Add suggested weather item to cart with default customizations
    */
   const addSuggestedItem = () => {
-    const suggestion = getWeatherSuggestion();
+    const suggestion = currentSuggestion; // Use cached suggestion directly
     if (suggestion) {
       const menuItem = suggestion.item;
       const size: DrinkSize = 'Medium';
       const toppings: string[] = [];
-      const iceLevel = 75; // Regular ice
+      // Set hot option if cold weather and not a slush
+      const isHot = weather && weather.temp <= 65 && suggestion.item.drinkcategory !== 'Slush';
+      const iceLevel = isHot ? 1 : 75; // No ice for hot drinks, regular ice otherwise
       const sugarLevel = 100; // 100% sugar
-      const isHot = false;
       
       const toppingPrice = toppings.reduce((sum, toppingId) => {
         const topping = AVAILABLE_TOPPINGS.find(t => t.id === toppingId);
@@ -745,7 +768,11 @@ function CustomerKioskLayout() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className={`min-h-screen ${
+      isHighContrast
+        ? 'bg-black text-yellow-400'
+        : 'bg-background'
+    }`}>
       {/* Attract Screen - shown when idle */}
       {isIdle && <AttractScreen onInteract={handleInteraction} seasonalItems={seasonalItems} />}
 
@@ -979,7 +1006,11 @@ function CustomerKioskLayout() {
       )}
 
       {/* Header */}
-      <div className="bg-card border-b-2 border-border text-foreground p-6 shadow-sm">
+      <div className={`border-b-2 border-border p-6 shadow-sm ${
+        isHighContrast
+          ? 'bg-black text-yellow-400 border-yellow-400'
+          : 'bg-card text-foreground'
+      }`}>
         <div className="flex justify-between items-center mb-4">
           <Link to="/home">
             <Button className="bg-secondary hover:bg-secondary/80 text-secondary-foreground">
@@ -1003,7 +1034,11 @@ function CustomerKioskLayout() {
                 </Button>
               </div>
             )}
-            <Translator />
+            <div className="flex items-center gap-4">
+              <AccessibilityButton />
+              <ThemeToggle />
+              <Translator />
+            </div>
           </div>
         </div>
         <h1 className="text-4xl font-bold text-center mb-2">
@@ -1016,17 +1051,25 @@ function CustomerKioskLayout() {
 
       {/* Weather-based Suggestion Banner */}
       {showSuggestion && weather && getWeatherSuggestion() && (
-        <div className="mx-6 mb-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-lg shadow-sm">
+        <div className={`mx-6 mb-4 p-4 border-2 rounded-lg shadow-sm ${
+          isHighContrast
+            ? 'bg-black border-yellow-400 text-yellow-400'
+            : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200'
+        }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="text-2xl">
                 {weather.temp > 65 ? '🥤' : '☕'}
               </div>
               <div>
-                <h3 className="font-semibold text-blue-800 mb-1">
+                <h3 className={`font-semibold mb-1 ${
+                  isHighContrast ? 'text-yellow-400' : 'text-blue-800'
+                }`}>
                   Weather-Based Suggestion
                 </h3>
-                <p className="text-blue-700 text-sm">
+                <p className={`text-sm ${
+                  isHighContrast ? 'text-yellow-300' : 'text-blue-700'
+                }`}>
                   {getWeatherSuggestion()?.reason}
                 </p>
               </div>
@@ -1037,7 +1080,11 @@ function CustomerKioskLayout() {
                   resetIdleTimer();
                   addSuggestedItem();
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm"
+                className={`px-4 py-2 text-sm ${
+                  isHighContrast
+                    ? 'bg-yellow-400 hover:bg-yellow-300 text-black'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
               >
                 Add to Cart
               </Button>
@@ -1046,7 +1093,11 @@ function CustomerKioskLayout() {
                   resetIdleTimer();
                   setShowSuggestion(false);
                 }}
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-2 text-sm"
+                className={`px-3 py-2 text-sm ${
+                  isHighContrast
+                    ? 'bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-yellow-400'
+                    : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+                }`}
               >
                 ✕
               </Button>
@@ -1067,11 +1118,33 @@ function CustomerKioskLayout() {
               }}
               className={`px-6 py-3 rounded-lg text-lg font-medium transition-colors ${
                 selectedCategory === 'all'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                  ? isHighContrast 
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-purple-600 text-white'
+                  : isHighContrast
+                    ? 'bg-gray-800 text-yellow-400 border border-yellow-400 hover:bg-gray-700'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
               }`}
             >
               <SpeakableText>All</SpeakableText>
+            </button>
+            <button
+              onClick={() => {
+                resetIdleTimer();
+                setSelectedCategory('seasonal');
+              }}
+              className={`px-6 py-3 rounded-lg text-lg font-medium transition-colors relative ${
+                selectedCategory === 'seasonal'
+                  ? isHighContrast 
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-purple-600 text-white'
+                  : isHighContrast
+                    ? 'bg-gray-800 text-yellow-400 border border-yellow-400 hover:bg-gray-700'
+                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <SpeakableText>Seasonal</SpeakableText>
+              <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">⭐</span>
             </button>
             {categories.map((category) => (
               <button
@@ -1082,10 +1155,14 @@ function CustomerKioskLayout() {
                 }}
                 className={`px-6 py-3 rounded-lg text-lg font-medium transition-colors ${
                   selectedCategory === category
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    ? isHighContrast 
+                      ? 'bg-yellow-400 text-black'
+                      : 'bg-purple-600 text-white'
+                    : isHighContrast
+                      ? 'bg-gray-800 text-yellow-400 border border-yellow-400 hover:bg-gray-700'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
-              >
+                >
                 <SpeakableText>{category}</SpeakableText>
               </button>
             ))}
@@ -1103,7 +1180,11 @@ function CustomerKioskLayout() {
                 return (
                   <div
                     key={item.menuitemid}
-                    className="bg-card border-2 border-border rounded-xl p-6 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-lg transition-all"
+                    className={`border-2 rounded-xl p-6 hover:shadow-lg transition-all ${
+                      isHighContrast
+                        ? 'bg-black border-yellow-400 hover:border-yellow-300'
+                        : 'bg-card border-border hover:border-purple-400 dark:hover:border-purple-500'
+                    }`}
                   >
                     {item.image_url && (
                       <div className="mb-4">
@@ -1146,8 +1227,14 @@ function CustomerKioskLayout() {
         </div>
 
         {/* Right Panel - Shopping Cart */}
-        <div className="w-96 bg-muted border-l-2 border-border p-6 flex flex-col">
-          <h2 className="text-3xl font-bold mb-6 text-foreground">
+        <div className={`w-96 border-l-2 p-6 flex flex-col ${
+          isHighContrast
+            ? 'bg-black border-yellow-400'
+            : 'bg-muted border-border'
+        }`}>
+          <h2 className={`text-3xl font-bold mb-6 ${
+            isHighContrast ? 'text-yellow-400' : 'text-foreground'
+          }`}>
             <SpeakableText>Your Order</SpeakableText>
           </h2>
 
